@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+@theme {
+  /* You can add custom colors/fonts here later if needed */
+}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.social-btn {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e5e7eb;
+  border-radius: 9999px;
+  font-size: 1.4rem;
+  transition: all 0.2s;
+}
+
+.social-btn:hover {
+  background-color: #f3f4f6;
+  transform: translateY(-2px);
+}
