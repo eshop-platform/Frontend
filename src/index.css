@@ -1,1 +1,33 @@
 @import "tailwindcss";
+
+/* --- CUSTOM GLASSMORPHISM FIXES --- */
+
+/* 1. This prevents browsers from turning your inputs white/blue during autofill */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+    /* This makes the background transparent again */
+    -webkit-background-clip: text;
+    /* This keeps the text white */
+    -webkit-text-fill-color: white !important;
+    /* This effectively "stops" the browser from changing the background color */
+    transition: background-color 5000s ease-in-out 0s;
+    /* Optional: adds a tiny bit of glow to the text */
+    box-shadow: inset 0 0 20px 20px rgba(255, 255, 255, 0.05);
+}
+
+/* 2. Optional: Makes the scrollbar look nicer and dark to match your fashion theme */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0f172a; 
+}
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
