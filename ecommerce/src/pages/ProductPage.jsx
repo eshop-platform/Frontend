@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import ProductImageGallery from '../components/ProductImageGallery';
 import ProductInfo from '../components/ProductInfo';
 import VariantSelector from '../components/VariantSelector';
@@ -24,17 +24,17 @@ const product = {
 };
 
 const reviews = [
-  { user: 'Mia R.', rating: 5, comment: 'Perfect fit and the material feels premium.' },
-  { user: 'Jordan T.', rating: 4, comment: 'Great for windy days. Stylish and practical.' },
-  { user: 'Alex P.', rating: 5, comment: 'Love the pockets and lightweight feel.' },
-  { user: 'Sam K.', rating: 4, comment: 'Comfortable all day and easy to layer.' },
+  { id: 1, user: 'Mia R.', rating: 5, comment: 'Perfect fit and the material feels premium.' },
+  { id: 2, user: 'Jordan T.', rating: 4, comment: 'Great for windy days. Stylish and practical.' },
+  { id: 3, user: 'Alex P.', rating: 5, comment: 'Love the pockets and lightweight feel.' },
+  { id: 4, user: 'Sam K.', rating: 4, comment: 'Comfortable all day and easy to layer.' },
 ];
 
 const relatedProducts = [
-  { name: 'Summit Windbreaker', price: 89.99, image: makeImage('Windbreaker', '#1d4ed8') },
-  { name: 'Metro Utility Vest', price: 74.99, image: makeImage('Utility Vest', '#0369a1') },
-  { name: 'Trail Cargo Pants', price: 69.99, image: makeImage('Cargo Pants', '#16a34a') },
-  { name: 'Compact Daypack', price: 54.99, image: makeImage('Daypack', '#9333ea') },
+  { id: 1, name: 'Summit Windbreaker', price: 89.99, image: makeImage('Windbreaker', '#1d4ed8') },
+  { id: 2, name: 'Metro Utility Vest', price: 74.99, image: makeImage('Utility Vest', '#0369a1') },
+  { id: 3, name: 'Trail Cargo Pants', price: 69.99, image: makeImage('Cargo Pants', '#16a34a') },
+  { id: 4, name: 'Compact Daypack', price: 54.99, image: makeImage('Daypack', '#9333ea') },
 ];
 
 const ProductPage = () => {
@@ -43,10 +43,9 @@ const ProductPage = () => {
   const [material, setMaterial] = useState('Standard');
   const [quantity, setQuantity] = useState(1);
 
-  const averageRating = useMemo(
-    () => (reviews.reduce((total, review) => total + review.rating, 0) / reviews.length).toFixed(1),
-    []
-  );
+  const averageRating = reviews.length
+    ? (reviews.reduce((total, review) => total + review.rating, 0) / reviews.length).toFixed(1)
+    : '0.0';
 
   const decrementQuantity = () => setQuantity((current) => Math.max(1, current - 1));
   const incrementQuantity = () => setQuantity((current) => current + 1);

@@ -11,7 +11,9 @@ const QuantityStepper = ({ quantity, onDecrease, onIncrease }) => {
         >
           −
         </button>
-        <span className="min-w-10 text-center text-base font-semibold text-gray-900">{quantity}</span>
+        <span aria-label="Current quantity" className="min-w-10 text-center text-base font-semibold text-gray-900">
+          {quantity}
+        </span>
         <button
           type="button"
           onClick={onIncrease}

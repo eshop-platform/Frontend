@@ -6,7 +6,7 @@ const ReviewList = ({ averageRating, reviews }) => {
 
       <div className="mt-4 space-y-4">
         {reviews.map((review) => (
-          <article key={review.user} className="rounded-xl bg-gray-50 p-4">
+          <article key={review.id} className="rounded-xl bg-gray-50 p-4">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-gray-900">{review.user}</h3>
               <p className="text-amber-500">{'⭐'.repeat(review.rating)}</p>
