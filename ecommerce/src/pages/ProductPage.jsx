@@ -6,35 +6,80 @@ import QuantityStepper from '../components/QuantityStepper';
 import ReviewList from '../components/ReviewList';
 import RelatedProducts from '../components/RelatedProducts';
 
-const makeImage = (label, color) =>
-  `data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600'><defs><linearGradient id='g' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='${color}'/><stop offset='100%' stop-color='#111827'/></linearGradient></defs><rect width='100%' height='100%' fill='url(#g)'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='44' fill='white'>${label}</text></svg>`)}`;
-
 const product = {
   title: 'Urban Trail Jacket',
   price: 7500,
+  badge: 'Bestseller',
+  inStock: true,
   shortDescription: 'Lightweight, weather-ready jacket designed for city streets and weekend hikes.',
   longDescription:
-    'Built with breathable fabric and a water-resistant outer shell, this jacket keeps you comfortable from commute to adventure. The ergonomic fit, hidden pockets, and durable stitching make it an everyday staple.',
+    'Built with breathable fabric and a water-resistant outer shell, this jacket keeps you comfortable from commute to adventure. The ergonomic fit, hidden pockets, and durable stitching make it an everyday staple for any active lifestyle.',
   images: [
-    makeImage('Front View', '#2563eb'),
-    makeImage('Back View', '#0d9488'),
-    makeImage('Detail Shot', '#7c3aed'),
-    makeImage('Lifestyle', '#ea580c'),
+    'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600&q=80',
+    'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=600&q=80',
+    'https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=600&q=80',
+    'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=600&q=80',
   ],
 };
 
 const reviews = [
-  { id: 1, user: 'Mia R.', rating: 5, comment: 'Perfect fit and the material feels premium.' },
-  { id: 2, user: 'Jordan T.', rating: 4, comment: 'Great for windy days. Stylish and practical.' },
-  { id: 3, user: 'Alex P.', rating: 5, comment: 'Love the pockets and lightweight feel.' },
-  { id: 4, user: 'Sam K.', rating: 4, comment: 'Comfortable all day and easy to layer.' },
+  { id: 1, user: 'Abebe T.', rating: 5, comment: 'Perfect fit and the material feels premium. Worth every birr!' },
+  { id: 2, user: 'Tigist M.', rating: 4, comment: 'Great for Addis Abeba\'s cool mornings. Stylish and practical.' },
+  { id: 3, user: 'Dawit A.', rating: 5, comment: 'Love the pockets and the lightweight feel. Highly recommend.' },
+  { id: 4, user: 'Selam B.', rating: 4, comment: 'Comfortable all day and very easy to layer.' },
+  { id: 5, user: 'Yohannes G.', rating: 5, comment: 'Top-notch quality. I bought one for my brother too.' },
+  { id: 6, user: 'Hiwot K.', rating: 4, comment: 'Excellent jacket, fast delivery. Fits true to size.' },
 ];
 
 const relatedProducts = [
-  { id: 1, name: 'Summit Windbreaker', price: 5000, image: makeImage('Windbreaker', '#1d4ed8') },
-  { id: 2, name: 'Metro Utility Vest', price: 4200, image: makeImage('Utility Vest', '#0369a1') },
-  { id: 3, name: 'Trail Cargo Pants', price: 3900, image: makeImage('Cargo Pants', '#16a34a') },
-  { id: 4, name: 'Compact Daypack', price: 3100, image: makeImage('Daypack', '#9333ea') },
+  {
+    id: 1,
+    name: 'Summit Windbreaker',
+    price: 5000,
+    image: 'https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=400&q=80',
+  },
+  {
+    id: 2,
+    name: 'Metro Utility Vest',
+    price: 4200,
+    image: 'https://images.unsplash.com/photo-1529374255404-311a2a4f1fd9?w=400&q=80',
+  },
+  {
+    id: 3,
+    name: 'Trail Cargo Pants',
+    price: 3900,
+    image: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=400&q=80',
+  },
+  {
+    id: 4,
+    name: 'Compact Daypack',
+    price: 3100,
+    image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&q=80',
+  },
+  {
+    id: 5,
+    name: 'Classic Hoodie',
+    price: 2800,
+    image: 'https://images.unsplash.com/photo-1512438248247-f0f2a5a8b7f0?w=400&q=80',
+  },
+  {
+    id: 6,
+    name: 'Trail Running Shoes',
+    price: 6500,
+    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80',
+  },
+  {
+    id: 7,
+    name: 'Outdoor Cap',
+    price: 1200,
+    image: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=400&q=80',
+  },
+  {
+    id: 8,
+    name: 'Fleece Gloves',
+    price: 950,
+    image: 'https://images.unsplash.com/photo-1514327605112-b887c0e61c0a?w=400&q=80',
+  },
 ];
 
 const ProductPage = () => {
@@ -64,6 +109,8 @@ const ProductPage = () => {
             <ProductInfo
               title={product.title}
               price={product.price}
+              badge={product.badge}
+              inStock={product.inStock}
               shortDescription={product.shortDescription}
               longDescription={product.longDescription}
             />

@@ -1,8 +1,11 @@
 const ReviewList = ({ averageRating, reviews }) => {
   return (
     <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-      <h2 className="text-2xl font-bold text-gray-900">Reviews</h2>
-      <p className="mt-2 text-lg font-medium text-amber-600">⭐ {averageRating}/5</p>
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-gray-900">Customer Reviews</h2>
+        <span className="text-sm text-gray-500">{reviews.length} reviews</span>
+      </div>
+      <p className="mt-2 text-lg font-medium text-amber-600">⭐ {averageRating} / 5</p>
 
       <div className="mt-4 space-y-4">
         {reviews.map((review) => (
