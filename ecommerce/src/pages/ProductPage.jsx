@@ -11,7 +11,7 @@ const makeImage = (label, color) =>
 
 const product = {
   title: 'Urban Trail Jacket',
-  price: 129.99,
+  price: 7500,
   shortDescription: 'Lightweight, weather-ready jacket designed for city streets and weekend hikes.',
   longDescription:
     'Built with breathable fabric and a water-resistant outer shell, this jacket keeps you comfortable from commute to adventure. The ergonomic fit, hidden pockets, and durable stitching make it an everyday staple.',
@@ -31,10 +31,10 @@ const reviews = [
 ];
 
 const relatedProducts = [
-  { id: 1, name: 'Summit Windbreaker', price: 89.99, image: makeImage('Windbreaker', '#1d4ed8') },
-  { id: 2, name: 'Metro Utility Vest', price: 74.99, image: makeImage('Utility Vest', '#0369a1') },
-  { id: 3, name: 'Trail Cargo Pants', price: 69.99, image: makeImage('Cargo Pants', '#16a34a') },
-  { id: 4, name: 'Compact Daypack', price: 54.99, image: makeImage('Daypack', '#9333ea') },
+  { id: 1, name: 'Summit Windbreaker', price: 5000, image: makeImage('Windbreaker', '#1d4ed8') },
+  { id: 2, name: 'Metro Utility Vest', price: 4200, image: makeImage('Utility Vest', '#0369a1') },
+  { id: 3, name: 'Trail Cargo Pants', price: 3900, image: makeImage('Cargo Pants', '#16a34a') },
+  { id: 4, name: 'Compact Daypack', price: 3100, image: makeImage('Daypack', '#9333ea') },
 ];
 
 const ProductPage = () => {

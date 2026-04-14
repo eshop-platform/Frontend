@@ -4,7 +4,7 @@ const ProductCard = ({ product }) => {
       <img src={product.image} alt={product.name} className="h-36 w-full object-cover" />
       <div className="p-4">
         <h3 className="font-semibold text-gray-900">{product.name}</h3>
-        <p className="mt-1 font-semibold text-indigo-600">${product.price.toFixed(2)}</p>
+        <p className="mt-1 font-semibold text-indigo-600">ETB {product.price.toLocaleString()}</p>
       </div>
     </article>
   );
