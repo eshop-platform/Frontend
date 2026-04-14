@@ -1,7 +1,7 @@
-import AuthPage from './components/AuthPage';
+import ProductPage from './pages/ProductPage';
 
 function App() {
-  return <AuthPage />;
+  return <ProductPage />;
 }
 
 export default App;
