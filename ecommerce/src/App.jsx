@@ -1,10 +1,14 @@
-import { BrowserRouter } from "react-router-dom";
-import AppRoutes from "./routes/AppRoutes";
+import { Routes, Route } from "react-router-dom";
+import AuthPage from "./components/AuthPage";
+import ProductsPage from "./pages/ProductsPage";
 
-export default function App() {
+function App() {
   return (
-    <BrowserRouter>
-      <AppRoutes />
-    </BrowserRouter>
+    <Routes>
+      <Route path="/" element={<AuthPage />} />
+      <Route path="/products" element={<ProductsPage />} />
+    </Routes>
   );
 }
+
+export default App;
