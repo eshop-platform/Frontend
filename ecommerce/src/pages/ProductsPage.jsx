@@ -190,7 +190,7 @@ const totalPages = Math.ceil(sortedProducts.length / productsPerPage);
 ];
 
   return (
-  <div className="max-w-6xl mx-auto p-6">
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
     {/* TITLE */}
     <h1 className="text-2xl font-bold mb-6">Products</h1>
@@ -199,7 +199,7 @@ const totalPages = Math.ceil(sortedProducts.length / productsPerPage);
     <div className="relative rounded-2xl overflow-hidden mb-8">
       <img
   src={banners[currentBanner].image}
-  className="w-full h-64 object-cover"
+  className="w-full h-[200px] sm:h-[300px] md:h-[400px] object-cover"
 />
 
   <div className="absolute inset-0 bg-black/40 flex flex-col justify-center px-8 text-white">
@@ -221,8 +221,8 @@ const totalPages = Math.ceil(sortedProducts.length / productsPerPage);
       />
     </div>
 
-    {/* SEARCH + SORT ROW 🔥 */}
-    <div className="flex flex-col md:flex-row gap-4 mb-6">
+    {/* SEARCH + SORT ROW  */}
+    <div className="flex flex-col md:flex-row gap-4 mb-6 items-stretch md:items-center">
 
       {/* SEARCH */}
       <div className="relative flex-1">
@@ -255,7 +255,7 @@ const totalPages = Math.ceil(sortedProducts.length / productsPerPage);
     </div>
 
     {/* CATEGORY */}
-    <div className="flex gap-3 mb-8 overflow-x-auto">
+    <div className="flex gap-3 mb-8 overflow-x-auto pb-2 scrollbar-hide">
       {categories.map((cat) => (
         <button
           key={cat}
@@ -301,7 +301,7 @@ const totalPages = Math.ceil(sortedProducts.length / productsPerPage);
         Explore More
       </h2>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
 
         <div className="bg-gray-100 p-4 rounded-xl text-center hover:shadow-md transition">
           <img src="https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=200" className="mx-auto mb-2 h-20"/>

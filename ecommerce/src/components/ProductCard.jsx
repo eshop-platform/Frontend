@@ -2,7 +2,7 @@ const ProductCard = ({ product, wishlist, toggleWishlist }) => {
   const isLiked = wishlist.some((item) => item.id === product.id);
   return (
     <div className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group">
-
+      
       {/* IMAGE */}
       <div className="relative">
         <img
