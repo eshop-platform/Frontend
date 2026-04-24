@@ -15,6 +15,9 @@ import Wishlist from './pages/Wishlist';
 import Faq from './pages/Faq';
 import Returns from './pages/Returns';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import VerifyEmail from './pages/VerifyEmail';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -55,6 +58,9 @@ const App = () => {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="*" element={<NotFound />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
+<Route path="/forgot-password" element={<ForgotPassword />} />
+<Route path="/reset-password" element={<ResetPassword />} />
           </Routes>
         </main>
         <Footer />
