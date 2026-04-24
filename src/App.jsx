@@ -3,11 +3,13 @@ import { useEffect } from 'react';
 
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
+import ShoppingAssistant from './components/ai/ShoppingAssistant';
 
 import Home from './pages/Home';
 import Products from './pages/Products';
 import ProductDetails from './pages/ProductDetails';
 import About from './pages/About';
+import AddProduct from './pages/AddProduct';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Cart from './pages/Cart';
@@ -41,12 +43,13 @@ const App = () => {
       <div className="flex flex-col min-h-screen bg-white">
         <ScrollToTop />
         <Navbar isAuthenticated={false} />
-        <main className="flex-grow">
+        <main className="flex-grow relative z-0">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/products" element={<Products />} />
             <Route path="/products/:id" element={<ProductDetails />} />
             <Route path="/about" element={<About />} />
+            <Route path="/sell" element={<AddProduct />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/wishlist" element={<Wishlist />} />
             <Route path="/faq" element={<Faq />} />
@@ -58,6 +61,7 @@ const App = () => {
           </Routes>
         </main>
         <Footer />
+        <ShoppingAssistant />
       </div>
     </Router>
   );

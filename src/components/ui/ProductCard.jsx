@@ -2,12 +2,14 @@ import { Heart, ShoppingCart, Eye, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useWishlist } from '../../context/WishlistContext';
 import { useCurrency } from '../../context/CurrencyContext';
+import { getDisplayProductStats } from '../../../shared/reviewStore';
 
 const ProductCard = ({ product, onQuickBuy }) => {
   const isOutOfStock = product.stock === 0;
   const { isWishlisted, toggleWishlist } = useWishlist();
   const wishlisted = isWishlisted(product.id);
   const { format } = useCurrency();
+  const { rating, reviewCount } = getDisplayProductStats(product);
 
   const badges = [
     product.isNew ? { label: 'New', style: 'bg-gray-950 text-white' } : null,
@@ -81,8 +83,8 @@ const ProductCard = ({ product, onQuickBuy }) => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1">
             <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-            <span className="text-xs font-semibold text-gray-700">{product.rating.toFixed(1)}</span>
-            <span className="text-xs text-gray-400">({product.reviewCount})</span>
+            <span className="text-xs font-semibold text-gray-700">{rating.toFixed(1)}</span>
+            <span className="text-xs text-gray-400">({reviewCount})</span>
           </div>
           <p className="font-bold text-gray-950">{format(product.price)}</p>
         </div>

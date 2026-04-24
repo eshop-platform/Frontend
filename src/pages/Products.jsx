@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import ProductCard from '../components/ui/ProductCard';
 import { Filter, ChevronDown, Search, ChevronRight, SlidersHorizontal } from 'lucide-react';
-import { categories, products } from '../data/products';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
+import { getDisplayProductStats } from '../../shared/reviewStore';
+import { useCatalog } from '../context/CatalogContext';
 
 const PRODUCTS_PER_BATCH = 9;
 
@@ -115,6 +116,7 @@ const Products = () => {
   const { toast } = useToast();
   const [sidebarOpen, setSidebarOpen] = useState({ categories: true, collections: true });
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const { catalog, categories } = useCatalog();
 
   const searchQuery = searchParams.get('q') ?? '';
   const categoryFilter = searchParams.get('cat') ?? 'All';
@@ -122,7 +124,7 @@ const Products = () => {
 
   const visibleProducts = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    const filtered = products.filter((p) => {
+    const filtered = catalog.filter((p) => {
       const matchesQuery = !q || [p.name, p.category, p.description, ...(p.tags ?? [])].join(' ').toLowerCase().includes(q);
       const matchesCat =
         categoryFilter === 'All' ||
@@ -139,10 +141,22 @@ const Products = () => {
     const sorted = [...filtered];
     if (sortOrder === 'price-low') sorted.sort((a, b) => a.price - b.price);
     else if (sortOrder === 'price-high') sorted.sort((a, b) => b.price - a.price);
-    else if (sortOrder === 'rating') sorted.sort((a, b) => b.rating - a.rating || b.reviewCount - a.reviewCount);
-    else sorted.sort((a, b) => Number(b.isNew) - Number(a.isNew) || a.id - b.id);
+    else if (sortOrder === 'rating') {
+      sorted.sort((a, b) => {
+        const aStats = getDisplayProductStats(a);
+        const bStats = getDisplayProductStats(b);
+        return bStats.rating - aStats.rating || bStats.reviewCount - aStats.reviewCount;
+      });
+    }
+    else {
+      sorted.sort((a, b) => {
+        const freshness = Number(b.isNew) - Number(a.isNew);
+        if (freshness !== 0) return freshness;
+        return String(a.id).localeCompare(String(b.id), undefined, { numeric: true });
+      });
+    }
     return sorted;
-  }, [categoryFilter, searchQuery, sortOrder]);
+  }, [catalog, categoryFilter, searchQuery, sortOrder]);
 
   const updateParam = (key, value) => {
     const next = new URLSearchParams(searchParams);
