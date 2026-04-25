@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Heart, Star, ChevronRight, Minus, Plus } from 'lucide-react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import VariantPicker from '../components/product/VariantPicker';
 import { getColor } from '../lib/colorUtils';
 import PurchaseModal from '../components/ui/PurchaseModal';
@@ -35,6 +35,7 @@ const InputField = ({ label, value, onChange }) => (
 );
 
 const ProductDetailsContent = ({ product: initialProduct }) => {
+  const navigate = useNavigate();
   const { addToCart } = useCart();
   const { toggleWishlist, isWishlisted } = useWishlist();
   const { format } = useCurrency();
@@ -204,7 +205,7 @@ const ProductDetailsContent = ({ product: initialProduct }) => {
               Add to Cart
             </button>
             <button
-              onClick={() => setIsModalOpen(true)}
+              onClick={() => navigate('/checkout', { state: { product, selectedColor, selectedSize, quantity: qty } })}
               className="flex-1 bg-blue-600 text-white py-4 rounded-full font-semibold text-sm hover:bg-blue-700 transition-colors"
             >
               Buy Now

@@ -1,13 +1,20 @@
-import { Heart, ShoppingCart, Eye, Star } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Heart, ShoppingCart, Eye, Star, Zap } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useWishlist } from '../../context/WishlistContext';
 import { useCurrency } from '../../context/CurrencyContext';
 
 const ProductCard = ({ product, onQuickBuy }) => {
+  const navigate = useNavigate();
   const isOutOfStock = product.stock === 0;
   const { isWishlisted, toggleWishlist } = useWishlist();
   const wishlisted = isWishlisted(product._id);
   const { format } = useCurrency();
+
+  const handleBuyNow = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate('/checkout', { state: { product } });
+  };
 
   const badges = [
     (product.isNewCollection || product.isNew) ? { label: 'New', style: 'bg-gray-950 text-white' } : null,
@@ -72,7 +79,14 @@ const ProductCard = ({ product, onQuickBuy }) => {
             disabled={isOutOfStock}
             className="bg-white text-gray-900 px-4 py-2.5 rounded-full shadow-lg text-xs font-semibold flex items-center gap-1.5 hover:bg-gray-950 hover:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            <ShoppingCart className="w-3.5 h-3.5" /> Add to Cart
+            <ShoppingCart className="w-3.5 h-3.5" /> Add
+          </button>
+          <button
+            onClick={handleBuyNow}
+            disabled={isOutOfStock}
+            className="bg-gray-950 text-white px-4 py-2.5 rounded-full shadow-lg text-xs font-semibold flex items-center gap-1.5 hover:bg-gray-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <Zap className="w-3.5 h-3.5 fill-current" /> Buy Now
           </button>
           <Link
             to={`/products/${product._id}`}

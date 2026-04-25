@@ -1,55 +1,91 @@
-/* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { useAuth } from './AuthContext';
+import { api } from '../lib/api';
 
 const CartContext = createContext();
 
-const initialCart = [];
-
-const buildCartItem = (product) => ({
-  lineId: `${product.id}-${product.selectedColor ?? 'default'}-${product.selectedSize ?? 'default'}`,
-  id: product.id,
-  name: product.name,
-  price: product.price,
-  image: product.image,
-  category: product.category,
-  selectedColor: product.selectedColor ?? null,
-  selectedSize: product.selectedSize ?? null,
-  quantity: 1
-});
+const mapBackendCartToFrontend = (backendCart) => {
+  return backendCart
+    .filter(cartItem => cartItem.item) // Defensive: filter out items where product is missing
+    .map(cartItem => ({
+      lineId: `${cartItem.item._id || cartItem.item.id}-${cartItem.selectedColor ?? 'default'}-${cartItem.selectedSize ?? 'default'}`,
+      id: cartItem.item._id || cartItem.item.id,
+      product: cartItem.item,
+      name: cartItem.item.title || cartItem.item.name,
+      price: cartItem.item.price,
+      image: cartItem.item.image || (cartItem.item.images && cartItem.item.images[0]),
+      category: cartItem.item.categoryName || (cartItem.item.category && cartItem.item.category.name),
+      selectedColor: cartItem.selectedColor,
+      selectedSize: cartItem.selectedSize,
+      quantity: cartItem.quantity
+    }));
+};
 
 export const CartProvider = ({ children }) => {
-  const [cart, setCart] = useState(initialCart);
+  const { user, isAuthenticated } = useAuth();
+  const [cart, setCart] = useState([]);
 
-  const addToCart = (product) => {
-    const item = buildCartItem(product);
+  useEffect(() => {
+    if (isAuthenticated && user?.cart) {
+      setCart(mapBackendCartToFrontend(user.cart));
+    } else if (!isAuthenticated) {
+      setCart([]);
+    }
+  }, [user, isAuthenticated]);
 
-    setCart((currentCart) => {
-      const existingItem = currentCart.find((cartItem) => cartItem.lineId === item.lineId);
+  const addToCart = async (product) => {
+    if (!isAuthenticated) return;
 
-      if (existingItem) {
-        return currentCart.map((cartItem) =>
-          cartItem.lineId === item.lineId
-            ? { ...cartItem, quantity: cartItem.quantity + 1 }
-            : cartItem
-        );
-      }
-
-      return [...currentCart, item];
-    });
+    try {
+      const response = await api.post('/users/cart/add', {
+        productId: product._id || product.id,
+        quantity: 1,
+        selectedColor: product.selectedColor || null,
+        selectedSize: product.selectedSize || null
+      });
+      setCart(mapBackendCartToFrontend(response.data));
+    } catch (err) {
+      console.error('Failed to add to cart:', err);
+    }
   };
 
-  const removeFromCart = (lineId) => {
-    setCart((currentCart) => currentCart.filter((item) => item.lineId !== lineId));
+  const removeFromCart = async (lineId) => {
+    if (!isAuthenticated) return;
+
+    const item = cart.find(i => i.lineId === lineId);
+    if (!item) return;
+
+    try {
+      const response = await api.post('/users/cart/remove', {
+        productId: item.id,
+        selectedColor: item.selectedColor,
+        selectedSize: item.selectedSize
+      });
+      setCart(mapBackendCartToFrontend(response.data));
+    } catch (err) {
+      console.error('Failed to remove from cart:', err);
+    }
   };
 
-  const updateQuantity = (lineId, delta) => {
-    setCart((currentCart) =>
-      currentCart.map((item) =>
-        item.lineId === lineId
-          ? { ...item, quantity: Math.max(1, item.quantity + delta) }
-          : item
-      )
-    );
+  const updateQuantity = async (lineId, delta) => {
+    if (!isAuthenticated) return;
+
+    const item = cart.find(i => i.lineId === lineId);
+    if (!item) return;
+
+    const newQuantity = Math.max(0, item.quantity + delta);
+    
+    try {
+      const response = await api.patch('/users/cart/quantity', {
+        productId: item.id,
+        quantity: newQuantity,
+        selectedColor: item.selectedColor,
+        selectedSize: item.selectedSize
+      });
+      setCart(mapBackendCartToFrontend(response.data));
+    } catch (err) {
+      console.error('Failed to update quantity:', err);
+    }
   };
 
   const total = useMemo(

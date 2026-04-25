@@ -1,15 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { Trash2, Plus, Minus, ArrowRight, ShoppingBag } from 'lucide-react';
-import PurchaseModal from '../components/ui/PurchaseModal';
 import { useCurrency } from '../context/CurrencyContext';
 import { useToast } from '../context/ToastContext';
 import { api } from '../lib/api';
 
 const Cart = () => {
   const { cart, removeFromCart, updateQuantity, total } = useCart();
-  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [paymentStatus, setPaymentStatus] = useState({ type: 'idle', message: '' });
   const { format } = useCurrency();
@@ -147,10 +146,10 @@ const Cart = () => {
               <span className="font-bold text-gray-950 text-lg">{format(total)}</span>
             </div>
             <button
-              onClick={() => setIsCheckoutOpen(true)}
+              onClick={() => navigate('/checkout')}
               className="w-full bg-gray-950 text-white py-4 rounded-full font-semibold text-sm flex items-center justify-center gap-2 hover:bg-gray-800 transition-colors"
             >
-              Checkout with Chapa <ArrowRight className="w-4 h-4" />
+              Proceed to Checkout <ArrowRight className="w-4 h-4" />
             </button>
             <Link to="/products" className="block text-center text-xs text-gray-400 hover:text-gray-700 transition-colors mt-4">
               Continue Shopping
@@ -159,7 +158,6 @@ const Cart = () => {
         </div>
       )}
 
-      <PurchaseModal isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} product={checkoutPayload} />
     </div>
   );
 };

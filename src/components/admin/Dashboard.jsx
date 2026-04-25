@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import StatCard from './StatCard';
-import SalesChart from './SalesChart';
-import ActivityFeed from './ActivityFeed';
 import ApprovalQueue from './ApprovalQueue';
 import { ShoppingBag, Tag, Users, AlertCircle, TrendingUp, DollarSign } from 'lucide-react';
 import { api } from '../../lib/api';
@@ -95,8 +93,7 @@ const Dashboard = () => {
       </div>
 
       <div className="main-grid">
-        <SalesChart />
-        <ActivityFeed />
+        {/* Sales Trend and Activity Feed removed as per request */}
       </div>
 
       <div className="card" style={{marginTop: '24px'}}>

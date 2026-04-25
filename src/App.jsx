@@ -18,6 +18,7 @@ import Returns from './pages/Returns';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Profile from './pages/Profile';
 import PostItem from './pages/PostItem';
+import Checkout from './pages/Checkout';
 
 // Admin Imports
 import AdminLayout from './components/admin/Layout';
@@ -93,6 +94,7 @@ const App = () => {
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/post-item" element={<ProtectedRoute><PostItem /></ProtectedRoute>} />
           <Route path="/cart" element={<Cart />} />
+          <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/faq" element={<Faq />} />
           <Route path="/returns" element={<Returns />} />

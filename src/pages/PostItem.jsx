@@ -14,7 +14,8 @@ const PostItem = () => {
     price: '',
     category: '',
     image: '',
-    stock: 1
+    stock: 1,
+    gender: 'unisex'
   });
   
   const [categories, setCategories] = useState([]);
@@ -76,7 +77,8 @@ const PostItem = () => {
         price: '',
         category: categories[0]?._id || '',
         image: '',
-        stock: 1
+        stock: 1,
+        gender: 'unisex'
       });
 
       // Redirect after a short delay
@@ -164,6 +166,21 @@ const PostItem = () => {
                   ))}
                 </select>
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Gender</label>
+              <select
+                required
+                name="gender"
+                value={formData.gender || 'unisex'}
+                onChange={handleChange}
+                className="w-full bg-gray-50 border-none rounded-2xl py-4 px-4 focus:ring-2 focus:ring-gray-950 transition-all text-sm font-medium"
+              >
+                <option value="unisex">Unisex</option>
+                <option value="men">Men</option>
+                <option value="women">Women</option>
+              </select>
             </div>
 
             <div className="space-y-2">

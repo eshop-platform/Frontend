@@ -1,39 +1,42 @@
-/* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { useAuth } from './AuthContext';
+import { api } from '../lib/api';
 
 const WishlistContext = createContext();
 
+const mapWishlistData = (data) => {
+  return data.map(product => ({
+    ...product,
+    id: product._id || product.id,
+    name: product.title || product.name,
+    category: product.categoryName || (typeof product.category === 'object' ? product.category.name : product.category)
+  }));
+};
+
 export const WishlistProvider = ({ children }) => {
+  const { user, isAuthenticated } = useAuth();
   const [wishlist, setWishlist] = useState([]);
 
-  const toggleWishlist = (product) => {
-    setWishlist((currentWishlist) => {
-      const exists = currentWishlist.some((item) => item.id === product.id);
+  useEffect(() => {
+    if (isAuthenticated && user?.wishlist) {
+      setWishlist(mapWishlistData(user.wishlist));
+    } else if (!isAuthenticated) {
+      setWishlist([]);
+    }
+  }, [user, isAuthenticated]);
 
-      if (exists) {
-        return currentWishlist.filter((item) => item.id !== product.id);
-      }
+  const toggleWishlist = async (product) => {
+    if (!isAuthenticated) return;
 
-      return [
-        ...currentWishlist,
-        {
-          id: product.id,
-          name: product.name,
-          price: product.price,
-          image: product.image,
-          category: product.category,
-          rating: product.rating,
-          reviewCount: product.reviewCount,
-          isNew: product.isNew,
-          onSale: product.onSale,
-          bestSeller: product.bestSeller,
-          stock: product.stock
-        }
-      ];
-    });
+    try {
+      const response = await api.post(`/users/wishlist/${product._id || product.id}`);
+      setWishlist(mapWishlistData(response.data));
+    } catch (err) {
+      console.error('Failed to toggle wishlist:', err);
+    }
   };
 
-  const isWishlisted = (productId) => wishlist.some((item) => item.id === productId);
+  const isWishlisted = (productId) => wishlist.some((item) => (item._id || item.id) === productId);
 
   const wishlistCount = useMemo(() => wishlist.length, [wishlist]);
 
