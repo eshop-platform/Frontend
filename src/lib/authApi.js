@@ -1,7 +1,7 @@
-const AUTH_API_BASE_URL = "http://localhost:5000/api/auth";
+import { buildApiUrl } from "../../shared/apiConfig";
 
 export const postAuthJson = async (path, payload) => {
-  const response = await fetch(`${AUTH_API_BASE_URL}${path}`, {
+  const response = await fetch(buildApiUrl(`/api/auth${path}`), {
     method: "POST",
     headers: {
       "Content-Type": "application/json"

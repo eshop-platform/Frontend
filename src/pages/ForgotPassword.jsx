@@ -7,6 +7,7 @@ const ForgotPassword = () => {
 
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
+  const [devOtp, setDevOtp] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -15,10 +16,11 @@ const ForgotPassword = () => {
       const data = await postAuthJson("/forgot-password", { email });
 
       setMessage(data.message);
+      setDevOtp(data.devOtp || "");
 
       // go to reset page
       setTimeout(() => {
-        navigate("/reset-password", { state: { email } });
+        navigate("/reset-password", { state: { email, devOtp: data.devOtp || "" } });
       }, 1000);
 
     } catch (err) {
@@ -35,6 +37,11 @@ const ForgotPassword = () => {
         {message && (
           <p className="text-sm text-center mb-3 text-gray-700">
             {message}
+          </p>
+        )}
+        {devOtp && (
+          <p className="text-xs text-center mb-3 text-amber-700">
+            Development reset code: {devOtp}
           </p>
         )}
 

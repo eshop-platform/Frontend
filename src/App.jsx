@@ -20,6 +20,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import VerifyEmail from './pages/VerifyEmail';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import useAuthStore from './store/authStore';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -41,11 +42,13 @@ const NotFound = () => (
 );
 
 const App = () => {
+  const user = useAuthStore((state) => state.user);
+
   return (
     <Router>
       <div className="flex flex-col min-h-screen bg-white">
         <ScrollToTop />
-        <Navbar isAuthenticated={false} />
+        <Navbar isAuthenticated={Boolean(user)} />
         <main className="flex-grow relative z-0">
           <Routes>
             <Route path="/" element={<Home />} />

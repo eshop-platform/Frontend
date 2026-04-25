@@ -45,6 +45,11 @@ const ResetPassword = () => {
             {message}
           </p>
         )}
+        {state?.devOtp && (
+          <p className="text-xs text-center mb-3 text-amber-700">
+            Development reset code: {state.devOtp}
+          </p>
+        )}
 
         <form onSubmit={handleReset} className="space-y-4">
 

@@ -104,3 +104,9 @@ export const addRemoteReview = async (id, review) => {
 
   return normalizeProduct(payload.data);
 };
+
+export const deleteProduct = async (id) => {
+  await parseApiResponse(await apiFetch(`/api/products/${id}`, {
+    method: 'DELETE'
+  }));
+};

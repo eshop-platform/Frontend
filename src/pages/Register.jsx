@@ -50,10 +50,16 @@ const Register = () => {
         username: form.fullName,
         email: form.email,
         password: form.password
-      });
+      }).then((data) => {
+        if (data.requiresVerification) {
+          setMessage(data.message || "Check your email for the verification code.");
+          navigate("/verify-email", { state: { email: form.email } });
+          return;
+        }
 
-      setMessage("Account created successfully. You can sign in now.");
-      navigate("/login");
+        setMessage(data.message || "Account created successfully. You can sign in now.");
+        navigate("/login");
+      });
     } catch (err) {
       setMessage(err.message || "Registration failed");
     } finally {

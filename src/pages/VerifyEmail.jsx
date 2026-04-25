@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { postAuthJson } from "../lib/authApi";
+import useAuthStore from "../store/authStore";
 
 const VerifyEmail = () => {
   const { state } = useLocation();
   const navigate = useNavigate();
+  const login = useAuthStore((store) => store.login);
 
   const [otp, setOtp] = useState("");
   const [message, setMessage] = useState("");
@@ -18,10 +20,14 @@ const VerifyEmail = () => {
         otp,
       });
 
-      setMessage(data.message);
+      if (data.token) {
+        login(data);
+      }
+
+      setMessage(data.message || "Email verified.");
 
       setTimeout(() => {
-        navigate("/login");
+        navigate("/");
       }, 1000);
 
     } catch (err) {
@@ -36,7 +42,7 @@ const VerifyEmail = () => {
         <h2 className="text-xl font-bold mb-4">Verify Your Email</h2>
 
         <p className="text-sm text-gray-500 mb-4">
-          Enter the OTP sent to your email
+          Enter the OTP sent to your email.
         </p>
 
         {message && (

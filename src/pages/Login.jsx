@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import useAuthStore from "../store/authStore";
 import { postAuthJson } from "../lib/authApi";
 
+const ADMIN_APP_URL = import.meta.env.VITE_ADMIN_APP_URL || "http://127.0.0.1:5174";
+
 const Login = () => {
   const navigate = useNavigate();
   const login = useAuthStore((state) => state.login);
@@ -19,8 +21,12 @@ const Login = () => {
       login(data);
       setMessage("Login successful");
 
-      if (data.user?.role === "admin") navigate("/admin");
-      else navigate("/");
+      if (data.user?.role === "admin") {
+        window.location.assign(ADMIN_APP_URL);
+        return;
+      }
+
+      navigate("/");
     } catch (err) {
       setMessage(err.message || "Login failed");
     }

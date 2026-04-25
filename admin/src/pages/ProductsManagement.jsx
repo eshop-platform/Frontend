@@ -1,21 +1,29 @@
-import React from 'react';
-
-const products = [
-  { id: 101, title: 'Classic White Sneakers', category: 'Footwear', price: '$89.99', stock: 124, status: 'Active' },
-  { id: 102, title: 'Leather Crossbody Bag', category: 'Accessories', price: '$150.00', stock: 45, status: 'Active' },
-  { id: 103, title: 'Vintage Band Tee', category: 'Menswear', price: '$35.00', stock: 0, status: 'Out of Stock' },
-  { id: 104, title: 'Silk Scarf', category: 'Accessories', price: '$65.00', stock: 210, status: 'Active' },
-];
+import React, { useEffect, useState } from 'react';
+import { fetchAllAdminProducts, removeProduct } from '../../../shared/adminApi';
 
 const ProductsManagement = () => {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchAllAdminProducts()
+      .then(setProducts)
+      .catch(() => setProducts([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleDelete = async (id) => {
+    await removeProduct(id);
+    setProducts((current) => current.filter((item) => item.id !== id));
+  };
+
   return (
     <div>
       <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h1 className="h1">Products Management</h1>
-          <p className="subtitle">Manage all active and inactive marketplace listings.</p>
+          <p className="subtitle">Manage all marketplace listings from the live backend catalog.</p>
         </div>
-        <button className="btn btn-primary">Add New Product</button>
       </div>
 
       <div className="card">
@@ -32,23 +40,32 @@ const ProductsManagement = () => {
               </tr>
             </thead>
             <tbody>
-              {products.map(prod => (
+              {loading && (
+                <tr>
+                  <td colSpan="6" style={{ textAlign: 'center', padding: '24px' }}>Loading products...</td>
+                </tr>
+              )}
+              {!loading && products.length === 0 && (
+                <tr>
+                  <td colSpan="6" style={{ textAlign: 'center', padding: '24px' }}>No products found.</td>
+                </tr>
+              )}
+              {products.map((prod) => (
                 <tr key={prod.id}>
-                  <td style={{ fontWeight: '500' }}>{prod.title}</td>
+                  <td style={{ fontWeight: '500' }}>{prod.name}</td>
                   <td>{prod.category}</td>
-                  <td style={{ fontWeight: '500' }}>{prod.price}</td>
+                  <td style={{ fontWeight: '500' }}>${Number(prod.price).toFixed(2)}</td>
                   <td style={{ color: prod.stock === 0 ? 'var(--danger-color)' : 'inherit', fontWeight: prod.stock === 0 ? '700' : 'normal' }}>
                     {prod.stock}
                   </td>
                   <td>
-                    <span className={`badge ${prod.status === 'Active' ? 'badge-green' : 'badge-red'}`}>
+                    <span className={`badge ${prod.status === 'approved' ? 'badge-green' : prod.status === 'pending' ? 'badge-yellow' : 'badge-red'}`}>
                       {prod.status}
                     </span>
                   </td>
                   <td>
                     <div className="action-buttons" style={{ justifyContent: 'flex-end' }}>
-                      <button className="btn btn-outline" style={{ padding: '6px 12px', fontSize: '12px' }}>Edit</button>
-                      <button className="btn btn-danger" style={{ padding: '6px 12px', fontSize: '12px' }}>Delete</button>
+                      <button className="btn btn-danger" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => handleDelete(prod.id)}>Delete</button>
                     </div>
                   </td>
                 </tr>

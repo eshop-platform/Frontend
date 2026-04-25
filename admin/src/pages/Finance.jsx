@@ -1,9 +1,33 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import SalesChart from '../components/SalesChart';
 import StatCard from '../components/StatCard';
 import { DollarSign, TrendingUp, CreditCard, Activity } from 'lucide-react';
+import { fetchDashboardStats, fetchPurchases } from '../../../shared/adminApi';
+
+const formatCurrency = (value) => `$${Number(value || 0).toLocaleString()}`;
 
 const Finance = () => {
+  const [stats, setStats] = useState(null);
+  const [purchases, setPurchases] = useState([]);
+
+  useEffect(() => {
+    Promise.all([
+      fetchDashboardStats().catch(() => null),
+      fetchPurchases().catch(() => []),
+    ]).then(([statsData, purchasesData]) => {
+      setStats(statsData);
+      setPurchases(purchasesData);
+    });
+  }, []);
+
+  const pendingPayouts = purchases
+    .filter((purchase) => purchase.status === 'pending')
+    .reduce((sum, purchase) => sum + Number(purchase.totalAmount || 0), 0);
+
+  const rejectedTotal = purchases
+    .filter((purchase) => purchase.status === 'rejected')
+    .reduce((sum, purchase) => sum + Number(purchase.totalAmount || 0), 0);
+
   return (
     <div>
       <div style={{ marginBottom: '24px' }}>
@@ -12,33 +36,33 @@ const Finance = () => {
       </div>
 
       <div className="dashboard-grid" style={{ marginBottom: '24px' }}>
-        <StatCard 
+        <StatCard
           title="Total Gross Revenue"
-          value="$1,248,560"
-          description="Total value of goods sold"
+          value={formatCurrency(stats?.financials?.revenue ?? 0)}
+          description="Total value of completed purchases"
           icon={<DollarSign size={20} />}
         />
-        <StatCard 
+        <StatCard
           title="Platform Commission"
-          value="$62,428"
-          description="5% cut from all sales"
+          value={formatCurrency(stats?.financials?.commission ?? 0)}
+          description="Current backend commission total"
           icon={<TrendingUp size={20} color="var(--success-color)" />}
         />
-        <StatCard 
+        <StatCard
           title="Pending Payouts"
-          value="$45,210"
-          description="Awaiting vendor transfer"
+          value={formatCurrency(pendingPayouts)}
+          description="Pending purchases awaiting completion"
           icon={<CreditCard size={20} />}
         />
-        <StatCard 
-          title="Refunds Processed"
-          value="$12,045"
-          description="In the last 30 days"
+        <StatCard
+          title="Rejected Volume"
+          value={formatCurrency(rejectedTotal)}
+          description="Rejected purchase value"
           icon={<Activity size={20} color="var(--danger-color)" />}
         />
       </div>
 
-      <SalesChart />
+      <SalesChart data={(stats?.categoryDistribution || []).map((item) => ({ name: item.categoryName, count: item.count }))} />
     </div>
   );
 };

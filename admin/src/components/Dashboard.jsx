@@ -1,11 +1,52 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import StatCard from './StatCard';
 import SalesChart from './SalesChart';
 import ActivityFeed from './ActivityFeed';
 import ApprovalQueue from './ApprovalQueue';
 import { ShoppingBag, Tag, Users, AlertCircle } from 'lucide-react';
+import { approvePurchase, fetchDashboardStats, fetchPurchases, rejectPurchase } from '../../../shared/adminApi';
+
+const formatCurrency = (value) => `$${Number(value || 0).toLocaleString()}`;
 
 const Dashboard = () => {
+  const [stats, setStats] = useState(null);
+  const [pendingPurchases, setPendingPurchases] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([
+      fetchDashboardStats().catch(() => null),
+      fetchPurchases('pending').catch(() => []),
+    ]).then(([statsData, purchases]) => {
+      setStats(statsData);
+      setPendingPurchases(purchases);
+      setLoading(false);
+    });
+  }, []);
+
+  const activity = useMemo(() => {
+    const purchaseItems = pendingPurchases.slice(0, 4).map((purchase) => ({
+      id: purchase._id,
+      title: `Pending purchase from ${purchase.buyer?.username || purchase.buyer?.email || 'buyer'}`,
+      meta: purchase.createdAt ? new Date(purchase.createdAt).toLocaleString() : 'Recently created',
+      status: formatCurrency(purchase.totalAmount),
+      statusColor: 'var(--warning-color)',
+    }));
+
+    return purchaseItems;
+  }, [pendingPurchases]);
+
+  const categoryData = (stats?.categoryDistribution || []).map((item) => ({
+    name: item.categoryName,
+    count: item.count,
+  }));
+
+  const handlePurchaseDecision = async (id, action) => {
+    const updater = action === 'approve' ? approvePurchase : rejectPurchase;
+    await updater(id);
+    setPendingPurchases((current) => current.filter((item) => item._id !== id));
+  };
+
   return (
     <div>
       <div style={{ marginBottom: '24px' }}>
@@ -14,69 +55,54 @@ const Dashboard = () => {
       </div>
 
       <div className="dashboard-grid">
-        <StatCard 
+        <StatCard
           title="Pending Purchases"
-          value="23"
-          description="Orders awaiting payment"
+          value={loading ? '...' : String(stats?.purchases?.pending ?? pendingPurchases.length)}
+          description="Orders awaiting review"
           icon={<ShoppingBag size={20} />}
-          badge={null}
         />
-        <StatCard 
+        <StatCard
           title="Pending Product Posts"
-          value="12"
+          value={loading ? '...' : String(stats?.products?.pending ?? 0)}
           description="New listings awaiting review"
           icon={<Tag size={20} />}
-          badge={null}
         />
-        <StatCard 
+        <StatCard
           title="Total Users"
-          value="18,342"
-          subtitle={<>Active: <strong style={{color: 'var(--text-primary)'}}>17,890</strong> &nbsp; Banned: <strong style={{color: 'var(--danger-color)'}}>452</strong></>}
-          icon={null}
-          badge={null}
+          value={loading ? '...' : String(stats?.users?.total ?? 0)}
+          subtitle={<>Active: <strong style={{ color: 'var(--text-primary)' }}>{stats?.users?.active ?? 0}</strong> &nbsp; Banned: <strong style={{ color: 'var(--danger-color)' }}>{stats?.users?.banned ?? 0}</strong></>}
+          icon={<Users size={20} />}
         />
-        <StatCard 
+        <StatCard
           title="Revenue"
-          value="$1,248,560"
-          subtitle={<>Platform commission (5%): <strong style={{color: 'var(--text-primary)'}}>$62,428</strong></>}
-          icon={null}
-          badge={null}
+          value={loading ? '...' : formatCurrency(stats?.financials?.revenue ?? 0)}
+          subtitle={<>Platform commission: <strong style={{ color: 'var(--text-primary)' }}>{formatCurrency(stats?.financials?.commission ?? 0)}</strong></>}
         />
-        <StatCard 
+        <StatCard
           title="Marketplace Products"
-          value="34,128"
-          description="Active listings across categories"
+          value={loading ? '...' : String(stats?.products?.total ?? 0)}
+          description="Listings tracked by the backend"
           icon={<ShoppingBag size={20} />}
         />
-        <StatCard 
-          title="Products by Category"
-          value=""
-          description={
-            <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-              <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'conic-gradient(#f59e0b 0% 42%, #3b82f6 42% 71%, #10b981 71% 89%, #f43f5e 89% 100%)' }}></div>
-              <div className="text-xs" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <div>Womenswear: 42%</div>
-                <div>Menswear: 29%</div>
-                <div>Accessories: 18%</div>
-                <div>Footwear: 11%</div>
-              </div>
-            </div>
-          }
-        />
-        <StatCard 
+        <StatCard
           title="Out of Stock Alerts"
-          value={<span style={{ color: 'var(--danger-color)' }}>8</span>}
+          value={loading ? '...' : <span style={{ color: 'var(--danger-color)' }}>{stats?.products?.outOfStock ?? 0}</span>}
           description="Products with zero inventory"
           icon={<AlertCircle size={20} color="var(--danger-color)" />}
         />
       </div>
 
       <div className="main-grid">
-        <SalesChart />
-        <ActivityFeed />
+        <SalesChart data={categoryData} />
+        <ActivityFeed activities={activity} />
       </div>
 
-      <ApprovalQueue />
+      <ApprovalQueue
+        purchases={pendingPurchases.slice(0, 5)}
+        loading={loading}
+        onApprove={(id) => handlePurchaseDecision(id, 'approve')}
+        onReject={(id) => handlePurchaseDecision(id, 'reject')}
+      />
     </div>
   );
 };
