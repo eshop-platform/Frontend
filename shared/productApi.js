@@ -38,7 +38,8 @@ export const fetchProducts = async (params = {}) => {
   });
 
   const payload = await parseApiResponse(await apiFetch(`/api/products${query.toString() ? `?${query}` : ''}`));
-  return (payload.data ?? []).map(normalizeProduct);
+  const dataList = Array.isArray(payload) ? payload : (payload.data ?? []);
+  return dataList.map(normalizeProduct);
 };
 
 export const fetchProductById = async (id) => {
