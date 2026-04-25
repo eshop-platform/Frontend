@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 /**
  * Centralized API helper for standardizing fetch requests
  * Automatically attaches the JWT token if found in localStorage
@@ -20,11 +19,19 @@ export const apiCall = async (endpoint, options = {}) => {
     headers,
   };
 
-  const response = await fetch(`${API_BASE}${endpoint}`, config);
-  const data = await response.json();
+  // Ensure endpoint starts with / if not absolute
+  const url = endpoint.startsWith('http') ? endpoint : `${API_BASE}${endpoint}`;
+  
+  const response = await fetch(url, config);
+  
+  // Handle empty responses
+  const contentType = response.headers.get('content-type');
+  const data = contentType && contentType.includes('application/json') 
+    ? await response.json() 
+    : await response.text();
 
   if (!response.ok) {
-    const error = new Error(data.message || 'Something went wrong');
+    const error = new Error(data.message || data || 'Something went wrong');
     error.status = response.status;
     error.data = data;
     throw error;
@@ -39,40 +46,13 @@ export const api = {
   put: (url, body, options) => apiCall(url, { ...options, method: 'PUT', body: JSON.stringify(body) }),
   patch: (url, body, options) => apiCall(url, { ...options, method: 'PATCH', body: JSON.stringify(body) }),
   delete: (url, options) => apiCall(url, { ...options, method: 'DELETE' }),
-};
-=======
-const API_BASE_URL = 'http://localhost:5000/api'; // Replace with your backend URL
 
-export const api = {
-  // Products
-  getProducts: async (params) => {
+  // Compatibility helpers (if needed by other components)
+  getProducts: (params) => {
     const query = new URLSearchParams(params).toString();
-    const res = await fetch(`${API_BASE_URL}/products?${query}`);
-    return res.json();
+    return api.get(`/products?${query}`);
   },
-  getProductById: async (id) => {
-    const res = await fetch(`${API_BASE_URL}/products/${id}`);
-    return res.json();
-  },
-  
-  // Auth
-  login: async (credentials) => {
-    const res = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(credentials),
-    });
-    return res.json();
-  },
-
-  // Orders
-  createOrder: async (orderData) => {
-    const res = await fetch(`${API_BASE_URL}/orders`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(orderData),
-    });
-    return res.json();
-  }
+  getProductById: (id) => api.get(`/products/${id}`),
+  login: (credentials) => api.post('/auth/login', credentials),
+  createOrder: (orderData) => api.post('/orders', orderData)
 };
->>>>>>> d4cea9c8c7184f28035db3b584fb913dd2609fd0

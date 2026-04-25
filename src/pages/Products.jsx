@@ -4,12 +4,7 @@ import ProductCard from '../components/ui/ProductCard';
 import { Filter, ChevronDown, Search, ChevronRight, SlidersHorizontal } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
-<<<<<<< HEAD
 import { api } from '../lib/api';
-=======
-import { getDisplayProductStats } from '../../shared/reviewStore';
-import { useCatalog } from '../context/CatalogContext';
->>>>>>> d4cea9c8c7184f28035db3b584fb913dd2609fd0
 
 const PRODUCTS_PER_BATCH = 9;
 
@@ -134,19 +129,14 @@ const Products = () => {
   const { toast } = useToast();
   const [sidebarOpen, setSidebarOpen] = useState({ categories: true, collections: true });
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-<<<<<<< HEAD
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [categoriesList, setCategoriesList] = useState([]);
-=======
-  const { catalog, categories } = useCatalog();
->>>>>>> d4cea9c8c7184f28035db3b584fb913dd2609fd0
 
   const searchQuery = searchParams.get('q') ?? '';
   const categoryFilter = searchParams.get('cat') ?? 'All';
   const sortOrder = searchParams.get('sort') ?? 'newest';
 
-<<<<<<< HEAD
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -171,7 +161,6 @@ const Products = () => {
         }).toString();
 
         const data = await api.get(`/products?${query}`);
-        console.log("Fetched products:", data.data);
         setProducts(data.data);
       } catch (err) {
         console.error('Failed to fetch products:', err);
@@ -184,43 +173,6 @@ const Products = () => {
     const timer = setTimeout(fetchProducts, 300);
     return () => clearTimeout(timer);
   }, [searchQuery, categoryFilter, sortOrder, toast]);
-=======
-  const visibleProducts = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    const filtered = catalog.filter((p) => {
-      const matchesQuery = !q || [p.name, p.category, p.description, ...(p.tags ?? [])].join(' ').toLowerCase().includes(q);
-      const matchesCat =
-        categoryFilter === 'All' ||
-        (categoryFilter === 'new' && p.isNew) ||
-        (categoryFilter === 'sale' && p.onSale) ||
-        (categoryFilter === 'best-sellers' && p.bestSeller) ||
-        (categoryFilter === 'men' && p.gender === 'men') ||
-        (categoryFilter === 'women' && p.gender === 'women') ||
-        p.category === categoryFilter ||
-        p.category === categoryFilter;
-      return matchesQuery && matchesCat;
-    });
-
-    const sorted = [...filtered];
-    if (sortOrder === 'price-low') sorted.sort((a, b) => a.price - b.price);
-    else if (sortOrder === 'price-high') sorted.sort((a, b) => b.price - a.price);
-    else if (sortOrder === 'rating') {
-      sorted.sort((a, b) => {
-        const aStats = getDisplayProductStats(a);
-        const bStats = getDisplayProductStats(b);
-        return bStats.rating - aStats.rating || bStats.reviewCount - aStats.reviewCount;
-      });
-    }
-    else {
-      sorted.sort((a, b) => {
-        const freshness = Number(b.isNew) - Number(a.isNew);
-        if (freshness !== 0) return freshness;
-        return String(a.id).localeCompare(String(b.id), undefined, { numeric: true });
-      });
-    }
-    return sorted;
-  }, [catalog, categoryFilter, searchQuery, sortOrder]);
->>>>>>> d4cea9c8c7184f28035db3b584fb913dd2609fd0
 
   const updateParam = (key, value) => {
     const next = new URLSearchParams(searchParams);
@@ -317,4 +269,3 @@ const Products = () => {
 };
 
 export default Products;
-

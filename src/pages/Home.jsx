@@ -1,31 +1,17 @@
 import { Link, useNavigate } from 'react-router-dom';
-<<<<<<< HEAD
 import { Suspense, lazy, useState, useEffect } from 'react';
-import ProductCard from '../components/ui/ProductCard';
-import { ArrowRight, Truck, RotateCcw, ShieldCheck, Star } from 'lucide-react';
-import { useCart } from '../context/CartContext';
-import { useToast } from '../context/ToastContext';
-import { api } from '../lib/api';
-=======
-import { Suspense, lazy, useMemo } from 'react';
 import ProductCard from '../components/ui/ProductCard';
 import { ArrowRight, Truck, RotateCcw, ShieldCheck, Star, Sparkles } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
-import { useCatalog } from '../context/CatalogContext';
-import { useWishlist } from '../context/WishlistContext';
-import { useRecentlyViewed } from '../context/RecentlyViewedContext';
->>>>>>> d4cea9c8c7184f28035db3b584fb913dd2609fd0
+import { api } from '../lib/api';
 
 const Hero3D = lazy(() => import('../components/ui/Hero3D'));
 
 const Home = () => {
   const navigate = useNavigate();
-  const { addToCart, cart } = useCart();
-  const { wishlist } = useWishlist();
-  const { viewed } = useRecentlyViewed();
+  const { addToCart } = useCart();
   const { toast } = useToast();
-<<<<<<< HEAD
   
   const [newArrivals, setNewArrivals] = useState({ data: [], loading: true });
   const [bestSellers, setBestSellers] = useState({ data: [], loading: true });
@@ -47,38 +33,10 @@ const Home = () => {
     };
     fetchData();
   }, []);
-=======
-  const { catalog } = useCatalog();
-
-  const newArrivals = useMemo(() => catalog.filter((product) => product.isNew).slice(0, 4), [catalog]);
-  const bestSellers = useMemo(() => catalog.filter((product) => product.bestSeller).slice(0, 3), [catalog]);
-
-  const personalizedProducts = useMemo(() => {
-    const preferredCategories = [
-      ...viewed.map((product) => product.category),
-      ...wishlist.map((product) => product.category),
-      ...cart.map((item) => item.category),
-    ].filter(Boolean);
-
-    const categoryScore = preferredCategories.reduce((accumulator, category) => {
-      accumulator[category] = (accumulator[category] ?? 0) + 1;
-      return accumulator;
-    }, {});
-
-    return [...catalog]
-      .filter((product) => !viewed.some((item) => item.id === product.id))
-      .sort((a, b) => {
-        const scoreA = categoryScore[a.category] ?? 0;
-        const scoreB = categoryScore[b.category] ?? 0;
-        return scoreB - scoreA || Number(b.bestSeller) - Number(a.bestSeller) || b.rating - a.rating;
-      })
-      .slice(0, 4);
-  }, [catalog, cart, viewed, wishlist]);
->>>>>>> d4cea9c8c7184f28035db3b584fb913dd2609fd0
 
   const handleQuickBuy = (product) => {
-    addToCart({ ...product, selectedColor: product.colors?.[0], selectedSize: product.sizes?.[0] });
-    toast(`${product.name} added to cart`);
+    addToCart({ ...product, id: product._id, selectedColor: product.colors?.[0], selectedSize: product.sizes?.[0] });
+    toast(`${product.title} added to cart`);
   };
 
   const Skeleton = ({ count = 4 }) => (
@@ -126,7 +84,7 @@ const Home = () => {
                 Shop Collection <ArrowRight className="w-4 h-4" />
               </button>
               <Link
-                to="/sell"
+                to="/post-item"
                 className="inline-flex items-center gap-2 border border-white/30 text-white px-8 py-4 rounded-full font-semibold text-sm hover:bg-white/10 transition-colors"
               >
                 Sell with AI
@@ -158,25 +116,6 @@ const Home = () => {
           </div>
         </div>
       </section>
-
-      {personalizedProducts.length > 0 && (
-        <section className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-end mb-12 gap-4">
-            <div>
-              <p className="text-xs text-gray-400 tracking-[0.25em] uppercase font-medium mb-2">Personalized</p>
-              <h2 className="text-4xl font-bold text-gray-950 tracking-tight">Picked for You</h2>
-            </div>
-            <Link to="/products" className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-950 hover:gap-2.5 transition-all">
-              Explore More <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {personalizedProducts.map((product) => (
-              <ProductCard key={product.id} product={product} onQuickBuy={handleQuickBuy} />
-            ))}
-          </div>
-        </section>
-      )}
 
       <section className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-end mb-12 gap-4">
@@ -212,7 +151,7 @@ const Home = () => {
             <p className="text-gray-400 max-w-sm">Use image understanding, pricing suggestions, and AI-generated content to launch listings with less manual work.</p>
           </div>
           <Link
-            to="/sell"
+            to="/post-item"
             className="flex-shrink-0 inline-flex items-center gap-2 bg-white text-gray-950 px-8 py-4 rounded-full font-semibold text-sm hover:bg-gray-100 transition-colors"
           >
             Open Seller Portal <ArrowRight className="w-4 h-4" />
@@ -274,4 +213,3 @@ const Home = () => {
 };
 
 export default Home;
-

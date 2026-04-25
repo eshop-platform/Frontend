@@ -2,14 +2,12 @@ import { Heart, ShoppingCart, Eye, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useWishlist } from '../../context/WishlistContext';
 import { useCurrency } from '../../context/CurrencyContext';
-import { getDisplayProductStats } from '../../../shared/reviewStore';
 
 const ProductCard = ({ product, onQuickBuy }) => {
   const isOutOfStock = product.stock === 0;
   const { isWishlisted, toggleWishlist } = useWishlist();
-  const wishlisted = isWishlisted(product.id);
+  const wishlisted = isWishlisted(product._id);
   const { format } = useCurrency();
-  const { rating, reviewCount } = getDisplayProductStats(product);
 
   const badges = [
     (product.isNewCollection || product.isNew) ? { label: 'New', style: 'bg-gray-950 text-white' } : null,
@@ -88,27 +86,18 @@ const ProductCard = ({ product, onQuickBuy }) => {
 
       <div className="p-4">
         <div className="flex items-center justify-between mb-1">
-          <p className="text-[10px] text-gray-400 uppercase tracking-[0.2em] font-medium">{product.category?.name || product.category}</p>
+          <p className="text-[10px] text-gray-400 uppercase tracking-[0.2em] font-medium">{product.categoryName || (typeof product.category === 'object' ? product.category.name : product.category)}</p>
           <span className="text-[9px] font-bold text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded">BY {product.createdBy?.username?.toUpperCase() || 'SYSTEM'}</span>
         </div>
         <Link to={`/products/${product._id}`}>
           <h3 className="font-semibold text-gray-900 text-sm mb-2 truncate hover:text-gray-600 transition-colors">{product.title}</h3>
         </Link>
-<<<<<<< HEAD
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1">
             <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
             <span className="text-xs font-semibold text-gray-700">{product.rating?.toFixed(1) || '0.0'}</span>
             <span className="text-xs text-gray-400">({product.reviewCount || 0})</span>
           </div>
-=======
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1">
-            <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-            <span className="text-xs font-semibold text-gray-700">{rating.toFixed(1)}</span>
-            <span className="text-xs text-gray-400">({reviewCount})</span>
-          </div>
->>>>>>> d4cea9c8c7184f28035db3b584fb913dd2609fd0
           <p className="font-bold text-gray-950">{format(product.price)}</p>
         </div>
       </div>

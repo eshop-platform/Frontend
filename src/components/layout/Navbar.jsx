@@ -4,12 +4,8 @@ import { ShoppingCart, User, Menu, X, Search, ChevronDown, Heart, LogOut } from 
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { useCurrency } from '../../context/CurrencyContext';
-<<<<<<< HEAD
 import { useAuth } from '../../context/AuthContext';
-import { categoryGroups, products } from '../../data/products';
-=======
-import { useCatalog } from '../../context/CatalogContext';
->>>>>>> d4cea9c8c7184f28035db3b584fb913dd2609fd0
+import { categoryGroups } from '../../data/products';
 
 const collectionRouteMap = {
   new: '/products?cat=new',
@@ -40,11 +36,7 @@ const Navbar = () => {
   const { cartCount } = useCart();
   const { wishlistCount } = useWishlist();
   const { currency, toggle: toggleCurrency } = useCurrency();
-<<<<<<< HEAD
   const { user, logout, isAuthenticated } = useAuth();
-=======
-  const { catalog, categoryGroups } = useCatalog();
->>>>>>> d4cea9c8c7184f28035db3b584fb913dd2609fd0
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -58,30 +50,6 @@ const Navbar = () => {
     setSearchFocused(false);
   }, [location.pathname, location.search]);
 
-  const normalizedQuery = searchQuery.trim().toLowerCase();
-
-  const suggestions = useMemo(() => (
-    normalizedQuery
-      ? [
-          ...catalog
-            .filter((product) =>
-              [product.name, product.category, product.description, ...(product.tags ?? [])]
-                .join(' ')
-                .toLowerCase()
-                .includes(normalizedQuery)
-            )
-            .slice(0, 5)
-            .map((product) => ({ id: `product-${product.id}`, label: product.name, helper: product.category, to: `/products/${product.id}` })),
-          ...categoryGroups
-            .flatMap((group) => group.items)
-            .filter((item, index, items) => items.indexOf(item) === index)
-            .filter((item) => (collectionLabelMap[item] ?? item).toLowerCase().includes(normalizedQuery))
-            .slice(0, 3)
-            .map((item) => ({ id: `cat-${item}`, label: collectionLabelMap[item] ?? item, helper: 'Category', to: collectionRouteMap[item] ?? `/products?cat=${encodeURIComponent(item)}` }))
-        ].slice(0, 6)
-      : []
-  ), [catalog, categoryGroups, normalizedQuery]);
-
   const handleSearchSubmit = (event) => {
     event.preventDefault();
     const query = searchQuery.trim();
@@ -92,7 +60,6 @@ const Navbar = () => {
     navigate(to);
   };
 
-<<<<<<< HEAD
   const handleLogout = () => {
     logout();
     setIsProfileOpen(false);
@@ -100,16 +67,12 @@ const Navbar = () => {
     navigate('/');
   };
 
-  const isActive = (path) => location.pathname === path;
-=======
   const isActive = (path) => {
     if (path === '/products') {
       return location.pathname === '/products' || location.pathname.startsWith('/products/');
     }
-
     return location.pathname === path;
   };
->>>>>>> d4cea9c8c7184f28035db3b584fb913dd2609fd0
 
   return (
     <nav className={`fixed top-0 left-0 right-0 isolate w-full z-[400] pointer-events-auto transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-xl shadow-sm border-b border-gray-100' : 'bg-white/80 backdrop-blur-md border-b border-transparent'}`}>
@@ -174,17 +137,11 @@ const Navbar = () => {
             <Link to="/about" className={`text-sm font-medium transition-colors ${isActive('/about') ? 'text-gray-950' : 'text-gray-500 hover:text-gray-950'}`}>
               About
             </Link>
-<<<<<<< HEAD
             {isAuthenticated && (
               <Link to="/post-item" className={`text-sm font-medium transition-colors ${isActive('/post-item') ? 'text-gray-950' : 'text-gray-500 hover:text-gray-950'}`}>
                 Sell
               </Link>
             )}
-=======
-            <Link to="/sell" className={`text-sm font-medium transition-colors ${isActive('/sell') ? 'text-gray-950' : 'text-gray-500 hover:text-gray-950'}`}>
-              Sell
-            </Link>
->>>>>>> d4cea9c8c7184f28035db3b584fb913dd2609fd0
 
             <div className="relative w-full max-w-[220px]">
               <form onSubmit={handleSearchSubmit} className="relative">
@@ -198,21 +155,6 @@ const Navbar = () => {
                   className="w-full rounded-full border border-gray-200 bg-gray-50 pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-950 focus:bg-white transition-all"
                 />
               </form>
-              {searchFocused && suggestions.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-2 rounded-2xl border border-gray-100 bg-white shadow-2xl shadow-gray-200/60 p-1.5 z-20">
-                  {suggestions.map((suggestion) => (
-                    <button
-                      key={suggestion.id}
-                      type="button"
-                      onClick={() => handleSuggestionClick(suggestion.to)}
-                      className="w-full text-left rounded-xl px-3.5 py-2.5 hover:bg-gray-50 transition-colors"
-                    >
-                      <p className="font-medium text-gray-900 text-sm">{suggestion.label}</p>
-                      <p className="text-xs text-gray-400">{suggestion.helper}</p>
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
 
             <button
@@ -318,16 +260,6 @@ const Navbar = () => {
               className="w-full rounded-full border border-gray-200 bg-gray-50 pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-950"
             />
           </form>
-          {suggestions.length > 0 && (
-            <div className="rounded-2xl border border-gray-100 p-1.5">
-              {suggestions.map((suggestion) => (
-                <button key={suggestion.id} type="button" onClick={() => handleSuggestionClick(suggestion.to)} className="w-full text-left rounded-xl px-3.5 py-2.5 hover:bg-gray-50 transition-colors">
-                  <p className="font-medium text-gray-900 text-sm">{suggestion.label}</p>
-                  <p className="text-xs text-gray-400">{suggestion.helper}</p>
-                </button>
-              ))}
-            </div>
-          )}
           
           {/* User info in mobile menu */}
           {isAuthenticated && (
@@ -358,7 +290,6 @@ const Navbar = () => {
           )}
 
           <div className="space-y-1">
-<<<<<<< HEAD
             {[
               ['/', 'Home'],
               ['/products', 'Shop All'],
@@ -367,10 +298,6 @@ const Navbar = () => {
               ...(isAuthenticated ? [['/post-item', 'Sell Your Item']] : [])
             ].map(([path, label]) => (
               <Link key={path} to={path} onClick={() => setIsOpen(false)} className={`block px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${isActive(path) ? 'bg-gray-100 text-gray-950' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-950'}`}>
-=======
-            {[['/', 'Home'], ['/products', 'Shop All'], ['/about', 'About'], ['/sell', 'Sell'], ['/wishlist', 'Wishlist']].map(([path, label]) => (
-              <Link key={path} to={path} className={`block px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${isActive(path) ? 'bg-gray-100 text-gray-950' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-950'}`}>
->>>>>>> d4cea9c8c7184f28035db3b584fb913dd2609fd0
                 {label}
               </Link>
             ))}
@@ -403,7 +330,6 @@ const Navbar = () => {
               </div>
             ))}
           </div>
-<<<<<<< HEAD
           
           {!isAuthenticated && (
             <Link to="/login" onClick={() => setIsOpen(false)} className="block w-full text-center bg-gray-950 text-white py-3 rounded-full text-sm font-semibold hover:bg-gray-800 transition-colors">
@@ -419,11 +345,6 @@ const Navbar = () => {
             <span>{currency === 'USD' ? '🇺🇸 USD — US Dollar' : '🇪🇹 ETB — Ethiopian Birr'}</span>
             <span className="text-gray-400 text-xs">Switch</span>
           </button>
-=======
-          <Link to="/login" className="block w-full text-center bg-gray-950 text-white py-3 rounded-full text-sm font-semibold hover:bg-gray-800 transition-colors">
-            Sign In
-          </Link>
->>>>>>> d4cea9c8c7184f28035db3b584fb913dd2609fd0
         </div>
       )}
     </nav>
@@ -431,4 +352,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-

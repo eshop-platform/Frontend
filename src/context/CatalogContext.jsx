@@ -36,4 +36,11 @@ export const CatalogProvider = ({ children }) => {
   );
 };
 
-export const useCatalog = () => useContext(CatalogContext);
+export const useCatalog = () => {
+  const context = useContext(CatalogContext);
+  if (context === undefined) {
+    throw new Error('useCatalog must be used within a CatalogProvider');
+  }
+  return context;
+};
+

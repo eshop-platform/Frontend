@@ -9,7 +9,6 @@ import Home from './pages/Home';
 import Products from './pages/Products';
 import ProductDetails from './pages/ProductDetails';
 import About from './pages/About';
-import AddProduct from './pages/AddProduct';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Cart from './pages/Cart';
@@ -17,7 +16,6 @@ import Wishlist from './pages/Wishlist';
 import Faq from './pages/Faq';
 import Returns from './pages/Returns';
 import PrivacyPolicy from './pages/PrivacyPolicy';
-<<<<<<< HEAD
 import Profile from './pages/Profile';
 import PostItem from './pages/PostItem';
 
@@ -33,12 +31,6 @@ import AdminFinance from './pages/admin/Finance';
 import AdminOutOfStock from './pages/admin/OutOfStock';
 import AdminProfile from './pages/admin/Profile';
 import { useAuth } from './context/AuthContext';
-=======
-import VerifyEmail from './pages/VerifyEmail';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
-import useAuthStore from './store/authStore';
->>>>>>> d4cea9c8c7184f28035db3b584fb913dd2609fd0
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -73,22 +65,23 @@ const NotFound = () => (
   </div>
 );
 
-const UserLayout = () => (
-  <div className="flex flex-col min-h-screen bg-white">
-    <Navbar />
-    <main className="flex-grow pt-[80px]">
-      <Outlet />
-    </main>
-    <Footer />
-  </div>
-);
+const UserLayout = () => {
+  const { isAuthenticated } = useAuth();
+  return (
+    <div className="flex flex-col min-h-screen bg-white">
+      <Navbar isAuthenticated={isAuthenticated} />
+      <main className="flex-grow pt-[80px]">
+        <Outlet />
+      </main>
+      <Footer />
+      <ShoppingAssistant />
+    </div>
+  );
+};
 
 const App = () => {
-  const user = useAuthStore((state) => state.user);
-
   return (
     <Router>
-<<<<<<< HEAD
       <ScrollToTop />
       <Routes>
         {/* User Routes */}
@@ -123,34 +116,6 @@ const App = () => {
 
         <Route path="*" element={<NotFound />} />
       </Routes>
-=======
-      <div className="flex flex-col min-h-screen bg-white">
-        <ScrollToTop />
-        <Navbar isAuthenticated={Boolean(user)} />
-        <main className="flex-grow relative z-0">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/products" element={<Products />} />
-            <Route path="/products/:id" element={<ProductDetails />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/sell" element={<AddProduct />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/wishlist" element={<Wishlist />} />
-            <Route path="/faq" element={<Faq />} />
-            <Route path="/returns" element={<Returns />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="*" element={<NotFound />} />
-            <Route path="/verify-email" element={<VerifyEmail />} />
-<Route path="/forgot-password" element={<ForgotPassword />} />
-<Route path="/reset-password" element={<ResetPassword />} />
-          </Routes>
-        </main>
-        <Footer />
-        <ShoppingAssistant />
-      </div>
->>>>>>> d4cea9c8c7184f28035db3b584fb913dd2609fd0
     </Router>
   );
 };
