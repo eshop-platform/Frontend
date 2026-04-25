@@ -19,13 +19,11 @@ const Sidebar = () => {
         <NavLink to="/purchase-approvals" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
           <ShoppingCart className="icon" />
           Purchase Approvals
-          <span className="nav-badge">5</span>
         </NavLink>
         
         <NavLink to="/product-approvals" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
           <Tag className="icon" />
           Product Approvals
-          <span className="nav-badge" style={{backgroundColor: '#fef3c7', color: '#d97706'}}>12</span>
         </NavLink>
         
         <NavLink to="/users" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
@@ -51,7 +49,6 @@ const Sidebar = () => {
         <NavLink to="/out-of-stock" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
           <AlertTriangle className="icon" />
           Out of Stock Alerts
-          <span className="nav-badge">8</span>
         </NavLink>
       </div>
       

@@ -1,13 +1,28 @@
-import React from 'react';
-
-const users = [
-  { id: 1, name: 'Alice Smith', email: 'alice@example.com', role: 'Vendor', status: 'Active', joined: 'Oct 12, 2025' },
-  { id: 2, name: 'Bob Johnson', email: 'bob@example.com', role: 'Buyer', status: 'Active', joined: 'Nov 05, 2025' },
-  { id: 3, name: 'Charlie Davis', email: 'charlie@example.com', role: 'Vendor', status: 'Banned', joined: 'Jan 22, 2026' },
-  { id: 4, name: 'Diana Prince', email: 'diana@example.com', role: 'Moderator', status: 'Active', joined: 'Feb 14, 2026' },
-];
+import React, { useEffect, useState } from 'react';
+import { banUser, fetchUsers, removeUser, unbanUser } from '../../../shared/adminApi';
 
 const UsersManagement = () => {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchUsers()
+      .then(setUsers)
+      .catch(() => setUsers([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleStatus = async (id, nextAction) => {
+    const updater = nextAction === 'ban' ? banUser : unbanUser;
+    const updated = await updater(id);
+    setUsers((current) => current.map((user) => user._id === id ? updated : user));
+  };
+
+  const handleDelete = async (id) => {
+    await removeUser(id);
+    setUsers((current) => current.filter((user) => user._id !== id));
+  };
+
   return (
     <div>
       <div style={{ marginBottom: '24px' }}>
@@ -29,23 +44,35 @@ const UsersManagement = () => {
               </tr>
             </thead>
             <tbody>
-              {users.map(user => (
-                <tr key={user.id}>
-                  <td style={{ fontWeight: '600' }}>{user.name}</td>
+              {loading && (
+                <tr>
+                  <td colSpan="6" style={{ textAlign: 'center', padding: '24px' }}>Loading users...</td>
+                </tr>
+              )}
+              {!loading && users.length === 0 && (
+                <tr>
+                  <td colSpan="6" style={{ textAlign: 'center', padding: '24px' }}>No users found.</td>
+                </tr>
+              )}
+              {users.map((user) => (
+                <tr key={user._id}>
+                  <td style={{ fontWeight: '600' }}>{user.username}</td>
                   <td style={{ color: 'var(--text-secondary)' }}>{user.email}</td>
                   <td>{user.role}</td>
-                  <td>{user.joined}</td>
+                  <td>{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '-'}</td>
                   <td>
-                    <span className={`badge ${user.status === 'Active' ? 'badge-green' : 'badge-red'}`}>
+                    <span className={`badge ${user.status === 'active' ? 'badge-green' : 'badge-red'}`}>
                       {user.status}
                     </span>
                   </td>
                   <td>
                     <div className="action-buttons" style={{ justifyContent: 'flex-end' }}>
-                      <button className="btn btn-outline" style={{ padding: '6px 12px', fontSize: '12px' }}>Edit</button>
-                      {user.status === 'Active' && (
-                        <button className="btn btn-danger" style={{ padding: '6px 12px', fontSize: '12px' }}>Ban</button>
+                      {user.status === 'active' ? (
+                        <button className="btn btn-danger" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => handleStatus(user._id, 'ban')}>Ban</button>
+                      ) : (
+                        <button className="btn btn-success" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => handleStatus(user._id, 'unban')}>Unban</button>
                       )}
+                      <button className="btn btn-outline" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => handleDelete(user._id)}>Delete</button>
                     </div>
                   </td>
                 </tr>

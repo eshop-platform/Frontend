@@ -1,18 +1,22 @@
-import React from 'react';
-
-const outOfStockItems = [
-  { id: 1, title: 'Vintage Band Tee', vendor: 'Retro Threads', daysEmpty: 5, actionRequired: 'Notify Vendor' },
-  { id: 2, title: 'Ceramic Vase', vendor: 'Home Goods Co', daysEmpty: 12, actionRequired: 'Delist Product' },
-  { id: 3, title: 'Wireless Earbuds', vendor: 'Tech Haven', daysEmpty: 1, actionRequired: 'Notify Vendor' },
-  { id: 4, title: 'Yoga Mat', vendor: 'FitLife', daysEmpty: 30, actionRequired: 'Delist Product' },
-];
+import React, { useEffect, useState } from 'react';
+import { fetchAllAdminProducts } from '../../../shared/adminApi';
 
 const OutOfStock = () => {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchAllAdminProducts()
+      .then((items) => setProducts(items.filter((item) => Number(item.stock) === 0)))
+      .catch(() => setProducts([]))
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
     <div>
       <div style={{ marginBottom: '24px' }}>
         <h1 className="h1">Out of Stock Alerts</h1>
-        <p className="subtitle">Products with zero inventory that require attention.</p>
+        <p className="subtitle">Products with zero inventory from the live catalog.</p>
       </div>
 
       <div className="card" style={{ borderLeft: '4px solid var(--danger-color)' }}>
@@ -22,31 +26,32 @@ const OutOfStock = () => {
               <tr>
                 <th>Product Title</th>
                 <th>Vendor</th>
-                <th>Days Out of Stock</th>
-                <th>Suggested Action</th>
-                <th style={{ textAlign: 'right' }}>Actions</th>
+                <th>Category</th>
+                <th>Stock</th>
+                <th>Status</th>
               </tr>
             </thead>
             <tbody>
-              {outOfStockItems.map(item => (
+              {loading && (
+                <tr>
+                  <td colSpan="5" style={{ textAlign: 'center', padding: '24px' }}>Loading out of stock products...</td>
+                </tr>
+              )}
+              {!loading && products.length === 0 && (
+                <tr>
+                  <td colSpan="5" style={{ textAlign: 'center', padding: '24px' }}>No out of stock products found.</td>
+                </tr>
+              )}
+              {products.map((item) => (
                 <tr key={item.id}>
-                  <td style={{ fontWeight: '500' }}>{item.title}</td>
-                  <td>{item.vendor}</td>
-                  <td style={{ color: item.daysEmpty > 7 ? 'var(--danger-color)' : 'inherit', fontWeight: '600' }}>
-                    {item.daysEmpty} days
-                  </td>
+                  <td style={{ fontWeight: '500' }}>{item.name}</td>
+                  <td>{item.brandName || item.sellerName || 'Seller'}</td>
+                  <td>{item.category}</td>
+                  <td style={{ color: 'var(--danger-color)', fontWeight: '600' }}>{item.stock}</td>
                   <td>
-                    <span className={`badge ${item.actionRequired === 'Delist Product' ? 'badge-red' : 'badge-yellow'}`}>
-                      {item.actionRequired}
+                    <span className={`badge ${item.status === 'approved' ? 'badge-green' : item.status === 'pending' ? 'badge-yellow' : 'badge-red'}`}>
+                      {item.status}
                     </span>
-                  </td>
-                  <td>
-                    <div className="action-buttons" style={{ justifyContent: 'flex-end' }}>
-                      <button className="btn btn-outline" style={{ padding: '6px 12px', fontSize: '12px' }}>Contact Vendor</button>
-                      {item.actionRequired === 'Delist Product' && (
-                        <button className="btn btn-danger" style={{ padding: '6px 12px', fontSize: '12px' }}>Delist</button>
-                      )}
-                    </div>
                   </td>
                 </tr>
               ))}
