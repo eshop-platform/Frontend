@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { postAuthJson } from "../lib/authApi";
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
@@ -12,12 +12,9 @@ const ForgotPassword = () => {
     e.preventDefault();
 
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/auth/forgot-password",
-        { email }
-      );
+      const data = await postAuthJson("/forgot-password", { email });
 
-      setMessage(res.data.message);
+      setMessage(data.message);
 
       // go to reset page
       setTimeout(() => {
@@ -25,7 +22,7 @@ const ForgotPassword = () => {
       }, 1000);
 
     } catch (err) {
-      setMessage(err.response?.data?.message || "Error sending OTP");
+      setMessage(err.message || "Error sending OTP");
     }
   };
 

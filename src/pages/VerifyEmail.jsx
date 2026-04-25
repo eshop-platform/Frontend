@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import axios from "axios";
+import { postAuthJson } from "../lib/authApi";
 
 const VerifyEmail = () => {
   const { state } = useLocation();
@@ -13,22 +13,19 @@ const VerifyEmail = () => {
     e.preventDefault();
 
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/auth/verify-email",
-        {
-          email: state?.email,
-          otp,
-        }
-      );
+      const data = await postAuthJson("/verify-email", {
+        email: state?.email,
+        otp,
+      });
 
-      setMessage(res.data.message);
+      setMessage(data.message);
 
       setTimeout(() => {
         navigate("/login");
       }, 1000);
 
     } catch (err) {
-      setMessage(err.response?.data?.message || "Verification failed");
+      setMessage(err.message || "Verification failed");
     }
   };
 

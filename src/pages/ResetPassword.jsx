@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import axios from "axios";
+import { postAuthJson } from "../lib/authApi";
 
 const ResetPassword = () => {
   const { state } = useLocation();
@@ -17,23 +17,20 @@ const ResetPassword = () => {
     e.preventDefault();
 
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/auth/reset-password",
-        {
-          email: state?.email,
-          otp: form.otp,
-          newPassword: form.newPassword,
-        }
-      );
+      const data = await postAuthJson("/reset-password", {
+        email: state?.email,
+        otp: form.otp,
+        newPassword: form.newPassword,
+      });
 
-      setMessage(res.data.message);
+      setMessage(data.message);
 
       setTimeout(() => {
         navigate("/login");
       }, 1200);
 
     } catch (err) {
-      setMessage(err.response?.data?.message || "Reset failed");
+      setMessage(err.message || "Reset failed");
     }
   };
 

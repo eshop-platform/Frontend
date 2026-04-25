@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import ProductCard from '../components/ui/ProductCard';
 import { Filter, ChevronDown, Search, ChevronRight, SlidersHorizontal } from 'lucide-react';

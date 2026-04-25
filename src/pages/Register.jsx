@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import { postAuthJson } from "../lib/authApi";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -15,25 +15,17 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  // ✅ handle input change
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.placeholder]: e.target.value });
-  };
-
-  // safer mapping using index instead of label
   const fields = [
     { key: "fullName", label: "Full Name", type: "text", placeholder: "Jane Doe" },
     { key: "email", label: "Email Address", type: "email", placeholder: "jane@example.com" },
-    { key: "password", label: "Password", type: "password", placeholder: "••••••••" },
-    { key: "confirmPassword", label: "Confirm Password", type: "password", placeholder: "••••••••" }
+    { key: "password", label: "Password", type: "password", placeholder: "********" },
+    { key: "confirmPassword", label: "Confirm Password", type: "password", placeholder: "********" }
   ];
 
-  // ✅ submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
 
-    // validation
     if (form.password !== form.confirmPassword) {
       return setMessage("Passwords do not match");
     }
@@ -41,7 +33,6 @@ const Register = () => {
     try {
       setLoading(true);
 
-      // 🔥 DEMO MODE (fallback if backend not running)
       const DEMO_MODE = false;
 
       if (DEMO_MODE) {
@@ -55,20 +46,16 @@ const Register = () => {
         return;
       }
 
-      // 🔥 REAL BACKEND CALL
-      const res = await axios.post("http://localhost:5000/api/auth/register", {
-        fullName: form.fullName,
+      await postAuthJson("/register", {
+        username: form.fullName,
         email: form.email,
         password: form.password
       });
 
-      setMessage(res.data.message);
-
-      // go to OTP verification page
-      navigate("/verify-email", { state: { email: form.email } });
-
+      setMessage("Account created successfully. You can sign in now.");
+      navigate("/login");
     } catch (err) {
-      setMessage(err.response?.data?.message || "Registration failed");
+      setMessage(err.message || "Registration failed");
     } finally {
       setLoading(false);
     }
@@ -85,8 +72,6 @@ const Register = () => {
         </div>
 
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
-
-          {/* message */}
           {message && (
             <p className="text-sm text-center mb-3 text-gray-700">
               {message}
