@@ -1,10 +1,10 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useState, useEffect } from 'react';
 import ProductCard from '../components/ui/ProductCard';
 import { ArrowRight, Truck, RotateCcw, ShieldCheck, Star } from 'lucide-react';
-import { products } from '../data/products';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
+import { api } from '../lib/api';
 
 const Hero3D = lazy(() => import('../components/ui/Hero3D'));
 
@@ -12,13 +12,44 @@ const Home = () => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const { toast } = useToast();
-  const newArrivals = products.filter((p) => p.isNew).slice(0, 4);
-  const bestSellers = products.filter((p) => p.bestSeller).slice(0, 3);
+  
+  const [newArrivals, setNewArrivals] = useState({ data: [], loading: true });
+  const [bestSellers, setBestSellers] = useState({ data: [], loading: true });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [newData, bestData] = await Promise.all([
+          api.get('/products?cat=new&status=approved'),
+          api.get('/products?cat=best-sellers&status=approved')
+        ]);
+        setNewArrivals({ data: newData.data.slice(0, 4), loading: false });
+        setBestSellers({ data: bestData.data.slice(0, 3), loading: false });
+      } catch (err) {
+        console.error('Failed to fetch home data:', err);
+        setNewArrivals(prev => ({ ...prev, loading: false }));
+        setBestSellers(prev => ({ ...prev, loading: false }));
+      }
+    };
+    fetchData();
+  }, []);
 
   const handleQuickBuy = (product) => {
-    addToCart({ ...product, selectedColor: product.colors[0], selectedSize: product.sizes[0] });
+    addToCart({ ...product, selectedColor: product.colors?.[0], selectedSize: product.sizes?.[0] });
     toast(`${product.name} added to cart`);
   };
+
+  const Skeleton = ({ count = 4 }) => (
+    <div className={`grid grid-cols-1 ${count === 3 ? 'md:grid-cols-3' : 'sm:grid-cols-2 lg:grid-cols-4'} gap-6`}>
+      {[...Array(count)].map((_, i) => (
+        <div key={i} className="animate-pulse">
+          <div className="aspect-[4/5] bg-gray-100 rounded-3xl mb-4" />
+          <div className="h-4 bg-gray-100 rounded-full w-1/3 mb-2" />
+          <div className="h-5 bg-gray-100 rounded-full w-2/3" />
+        </div>
+      ))}
+    </div>
+  );
 
   return (
     <div className="pt-[104px]">
@@ -103,11 +134,13 @@ const Home = () => {
             View All <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {newArrivals.map((product) => (
-            <ProductCard key={product.id} product={product} onQuickBuy={handleQuickBuy} />
-          ))}
-        </div>
+        {newArrivals.loading ? <Skeleton /> : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {newArrivals.data.map((product) => (
+              <ProductCard key={product._id} product={product} onQuickBuy={handleQuickBuy} />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Feature banner */}
@@ -143,14 +176,10 @@ const Home = () => {
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { label: 'Electronics', img: 'https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?auto=format&fit=crop&w=600&q=80', cat: 'Electronics' },
+              { label: 'Footwear', img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=600&q=80', cat: 'Footwear' },
               { label: "Men's Fashion", img: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=600&q=80', cat: 'men' },
               { label: "Women's Fashion", img: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=600&q=80', cat: 'women' },
-              { label: 'Beauty', img: 'https://images.unsplash.com/photo-1556228578-8c89e6adf883?auto=format&fit=crop&w=600&q=80', cat: 'Beauty' },
-              { label: 'Sports', img: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=600&q=80', cat: 'Sports' },
-              { label: 'Furniture', img: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=600&q=80', cat: 'Furniture' },
-              { label: 'Jewelry', img: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=600&q=80', cat: 'Jewelry' },
-              { label: 'Books', img: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=600&q=80', cat: 'Books' },
+              { label: 'Accessories', img: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80', cat: 'Accessories' },
             ].map(({ label, img, cat }) => (
               <Link
                 key={cat}
@@ -180,11 +209,13 @@ const Home = () => {
               View All <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {bestSellers.map((product) => (
-              <ProductCard key={product.id} product={product} onQuickBuy={handleQuickBuy} />
-            ))}
-          </div>
+          {bestSellers.loading ? <Skeleton count={3} /> : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {bestSellers.data.map((product) => (
+                <ProductCard key={product._id} product={product} onQuickBuy={handleQuickBuy} />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -222,3 +253,4 @@ const Home = () => {
 };
 
 export default Home;
+

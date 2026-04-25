@@ -6,7 +6,7 @@ const Sidebar = () => {
   return (
     <aside className="sidebar">
       <div className="sidebar-header">
-        <span style={{color: 'var(--primary-color)'}}>✨</span>
+        <div style={{ width: '28px', height: '28px', backgroundColor: '#000', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '14px', fontWeight: '900' }}>A</div>
         Aurelia Market
       </div>
       

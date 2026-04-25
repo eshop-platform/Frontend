@@ -1,16 +1,35 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { LoaderCircle, ShieldCheck, X, Lock } from 'lucide-react';
 import { generateTxRef } from '../../lib/chapa';
 import { useCurrency } from '../../context/CurrencyContext';
+import { useAuth } from '../../context/AuthContext';
+import { api } from '../../lib/api';
 
 const USD_TO_ETB = 130;
 
 const PurchaseModal = ({ isOpen, onClose, product }) => {
-  const [customer, setCustomer] = useState({ firstName: '', lastName: '', email: '', phone: '' });
+  const { user } = useAuth();
+  const [customer, setCustomer] = useState({ 
+    firstName: user?.username?.split(' ')[0] || '', 
+    lastName: user?.username?.split(' ')[1] || '', 
+    email: user?.email || '', 
+    phone: '' 
+  });
   const [status, setStatus] = useState({ type: 'idle', message: '' });
   const [isLaunching, setIsLaunching] = useState(false);
 
   const { currency, format } = useCurrency();
+
+  useEffect(() => {
+    if (user) {
+      setCustomer(prev => ({
+        ...prev,
+        firstName: user.username.split(' ')[0] || '',
+        lastName: user.username.split(' ')[1] || '',
+        email: user.email || ''
+      }));
+    }
+  }, [user]);
 
   // Chapa always charges in ETB — prices in data are already in ETB
   const etbAmount = useMemo(() => {
@@ -47,21 +66,28 @@ const PurchaseModal = ({ isOpen, onClose, product }) => {
     setStatus({ type: 'info', message: 'Preparing secure checkout…' });
 
     try {
-      const res = await fetch('/api/chapa/initialize', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ txRef, amount: etbAmount, firstName: customer.firstName, lastName: customer.lastName, email: customer.email, phone: customer.phone, productName: product.name })
+      const res = await api.post('/chapa/initialize', { 
+        txRef, 
+        amount: etbAmount, 
+        firstName: customer.firstName, 
+        lastName: customer.lastName, 
+        email: customer.email, 
+        phone: customer.phone, 
+        productName: product.name,
+        productId: product.id !== 'cart-checkout' ? (product._id || product.id) : null,
+        products: product.products || null
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message ?? 'Unable to initialize checkout.');
-      if (!data.checkoutUrl) throw new Error('Chapa did not return a checkout URL.');
+      
+      if (!res.checkoutUrl) throw new Error('Chapa did not return a checkout URL.');
       setStatus({ type: 'success', message: 'Redirecting to Chapa…' });
-      window.location.assign(data.checkoutUrl);
+      window.location.assign(res.checkoutUrl);
     } catch (err) {
+
       setStatus({ type: 'error', message: err.message ?? 'Unable to start checkout.' });
       setIsLaunching(false);
     }
   };
+
 
   const statusStyles = {
     error: 'bg-rose-50 text-rose-700 border border-rose-100',

@@ -1,23 +1,37 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import ProductCard from '../components/ui/ProductCard';
 import { Filter, ChevronDown, Search, ChevronRight, SlidersHorizontal } from 'lucide-react';
-import { categories, products } from '../data/products';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
+import { api } from '../lib/api';
 
 const PRODUCTS_PER_BATCH = 9;
 
-const ProductResults = ({ items, onQuickBuy }) => {
+const ProductResults = ({ items, onQuickBuy, loading }) => {
   const [visibleCount, setVisibleCount] = useState(PRODUCTS_PER_BATCH);
   const visible = items.slice(0, visibleCount);
   const hasMore = visibleCount < items.length;
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className="animate-pulse">
+            <div className="aspect-[4/5] bg-gray-100 rounded-3xl mb-4" />
+            <div className="h-4 bg-gray-100 rounded-full w-1/3 mb-2" />
+            <div className="h-5 bg-gray-100 rounded-full w-2/3" />
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
         {visible.map((product) => (
-          <ProductCard key={product.id} product={product} onQuickBuy={onQuickBuy} />
+          <ProductCard key={product._id} product={product} onQuickBuy={onQuickBuy} />
         ))}
       </div>
       {hasMore && (
@@ -115,34 +129,51 @@ const Products = () => {
   const { toast } = useToast();
   const [sidebarOpen, setSidebarOpen] = useState({ categories: true, collections: true });
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [categoriesList, setCategoriesList] = useState([]);
 
   const searchQuery = searchParams.get('q') ?? '';
   const categoryFilter = searchParams.get('cat') ?? 'All';
   const sortOrder = searchParams.get('sort') ?? 'newest';
 
-  const visibleProducts = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    const filtered = products.filter((p) => {
-      const matchesQuery = !q || [p.name, p.category, p.description, ...(p.tags ?? [])].join(' ').toLowerCase().includes(q);
-      const matchesCat =
-        categoryFilter === 'All' ||
-        (categoryFilter === 'new' && p.isNew) ||
-        (categoryFilter === 'sale' && p.onSale) ||
-        (categoryFilter === 'best-sellers' && p.bestSeller) ||
-        (categoryFilter === 'men' && p.gender === 'men') ||
-        (categoryFilter === 'women' && p.gender === 'women') ||
-        p.category === categoryFilter ||
-        p.category === categoryFilter;
-      return matchesQuery && matchesCat;
-    });
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await api.get('/categories');
+        setCategoriesList(data.data.map(c => c.name));
+      } catch (err) {
+        console.error('Failed to fetch categories:', err);
+      }
+    };
+    fetchCategories();
+  }, []);
 
-    const sorted = [...filtered];
-    if (sortOrder === 'price-low') sorted.sort((a, b) => a.price - b.price);
-    else if (sortOrder === 'price-high') sorted.sort((a, b) => b.price - a.price);
-    else if (sortOrder === 'rating') sorted.sort((a, b) => b.rating - a.rating || b.reviewCount - a.reviewCount);
-    else sorted.sort((a, b) => Number(b.isNew) - Number(a.isNew) || a.id - b.id);
-    return sorted;
-  }, [categoryFilter, searchQuery, sortOrder]);
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      try {
+        const query = new URLSearchParams({
+          q: searchQuery,
+          cat: categoryFilter,
+          sort: sortOrder,
+          status: 'approved'
+        }).toString();
+
+        const data = await api.get(`/products?${query}`);
+        console.log("Fetched products:", data.data);
+        setProducts(data.data);
+      } catch (err) {
+        console.error('Failed to fetch products:', err);
+        toast('Failed to load products', 'error');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const timer = setTimeout(fetchProducts, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery, categoryFilter, sortOrder, toast]);
 
   const updateParam = (key, value) => {
     const next = new URLSearchParams(searchParams);
@@ -152,8 +183,8 @@ const Products = () => {
   };
 
   const handleQuickBuy = (product) => {
-    addToCart({ ...product, selectedColor: product.colors[0], selectedSize: product.sizes[0] });
-    toast(`${product.name} added to cart`);
+    addToCart({ ...product, selectedColor: product.colors?.[0], selectedSize: product.sizes?.[0] });
+    toast(`${product.title} added to cart`);
   };
 
   const collectionButtons = [['new', 'New Arrivals'], ['sale', 'Sale Picks'], ['best-sellers', 'Best Sellers']];
@@ -166,7 +197,7 @@ const Products = () => {
         <div>
           <p className="text-xs text-gray-400 tracking-[0.25em] uppercase font-medium mb-2">Browse</p>
           <h1 className="text-4xl font-bold text-gray-950 tracking-tight">The Catalog</h1>
-          <p className="text-gray-500 mt-1 text-sm">{visibleProducts.length} item{visibleProducts.length !== 1 ? 's' : ''}</p>
+          <p className="text-gray-500 mt-1 text-sm">{products.length} item{products.length !== 1 ? 's' : ''}</p>
         </div>
         <div className="flex items-center gap-3">
           {/* Mobile filter toggle */}
@@ -209,19 +240,19 @@ const Products = () => {
       {/* Mobile filters */}
       {mobileFiltersOpen && (
         <div className="lg:hidden mb-6">
-          <FilterSidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} categoryFilter={categoryFilter} updateParam={updateParam} collectionButtons={collectionButtons} categories={categories} />
+          <FilterSidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} categoryFilter={categoryFilter} updateParam={updateParam} collectionButtons={collectionButtons} categories={categoriesList} />
         </div>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)] gap-8">
         {/* Desktop sidebar */}
         <aside className="hidden lg:block lg:sticky lg:top-28 h-fit">
-          <FilterSidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} categoryFilter={categoryFilter} updateParam={updateParam} collectionButtons={collectionButtons} categories={categories} />
+          <FilterSidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} categoryFilter={categoryFilter} updateParam={updateParam} collectionButtons={collectionButtons} categories={categoriesList} />
         </aside>
 
         {/* Results */}
         <div>
-          {visibleProducts.length === 0 ? (
+          {!loading && products.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-16 text-center">
               <p className="text-2xl font-semibold text-gray-900 mb-2">No products found</p>
               <p className="text-gray-500 text-sm mb-6">Try a different keyword or clear the active filters.</p>
@@ -230,7 +261,7 @@ const Products = () => {
               </Link>
             </div>
           ) : (
-            <ProductResults key={resultsKey} items={visibleProducts} onQuickBuy={handleQuickBuy} />
+            <ProductResults key={resultsKey} items={products} onQuickBuy={handleQuickBuy} loading={loading} />
           )}
         </div>
       </div>
@@ -239,3 +270,4 @@ const Products = () => {
 };
 
 export default Products;
+

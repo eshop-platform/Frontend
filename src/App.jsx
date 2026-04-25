@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate, Outlet } from 'react-router-dom';
 import { useEffect } from 'react';
 
 import Navbar from './components/layout/Navbar';
@@ -15,11 +15,40 @@ import Wishlist from './pages/Wishlist';
 import Faq from './pages/Faq';
 import Returns from './pages/Returns';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import Profile from './pages/Profile';
+import PostItem from './pages/PostItem';
+
+// Admin Imports
+import AdminLayout from './components/admin/Layout';
+import AdminDashboard from './components/admin/Dashboard';
+import AdminPurchaseApprovals from './pages/admin/PurchaseApprovals';
+import AdminProductApprovals from './pages/admin/ProductApprovals';
+import AdminUsersManagement from './pages/admin/UsersManagement';
+import AdminProductsManagement from './pages/admin/ProductsManagement';
+import AdminCategories from './pages/admin/Categories';
+import AdminFinance from './pages/admin/Finance';
+import AdminOutOfStock from './pages/admin/OutOfStock';
+import AdminProfile from './pages/admin/Profile';
+import { useAuth } from './context/AuthContext';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
   return null;
+};
+
+const ProtectedRoute = ({ children, requireAdmin = false }) => {
+  const { user, loading, isAuthenticated } = useAuth();
+  
+  if (loading) return <div className="h-screen flex items-center justify-center">Loading...</div>;
+  
+  if (!isAuthenticated) return <Navigate to="/login" />;
+  
+  if (requireAdmin && user?.role !== 'admin') {
+    return <Navigate to="/" />;
+  }
+  
+  return children ? children : <Outlet />;
 };
 
 const NotFound = () => (
@@ -35,30 +64,53 @@ const NotFound = () => (
   </div>
 );
 
+const UserLayout = () => (
+  <div className="flex flex-col min-h-screen bg-white">
+    <Navbar />
+    <main className="flex-grow pt-[80px]">
+      <Outlet />
+    </main>
+    <Footer />
+  </div>
+);
+
 const App = () => {
   return (
     <Router>
-      <div className="flex flex-col min-h-screen bg-white">
-        <ScrollToTop />
-        <Navbar isAuthenticated={false} />
-        <main className="flex-grow">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/products" element={<Products />} />
-            <Route path="/products/:id" element={<ProductDetails />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/wishlist" element={<Wishlist />} />
-            <Route path="/faq" element={<Faq />} />
-            <Route path="/returns" element={<Returns />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
+      <ScrollToTop />
+      <Routes>
+        {/* User Routes */}
+        <Route element={<UserLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/products/:id" element={<ProductDetails />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/post-item" element={<ProtectedRoute><PostItem /></ProtectedRoute>} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/wishlist" element={<Wishlist />} />
+          <Route path="/faq" element={<Faq />} />
+          <Route path="/returns" element={<Returns />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+        </Route>
+
+        {/* Admin Routes */}
+        <Route path="/admin" element={<ProtectedRoute requireAdmin={true}><AdminLayout /></ProtectedRoute>}>
+          <Route index element={<AdminDashboard />} />
+          <Route path="purchase-approvals" element={<AdminPurchaseApprovals />} />
+          <Route path="product-approvals" element={<AdminProductApprovals />} />
+          <Route path="users" element={<AdminUsersManagement />} />
+          <Route path="products" element={<AdminProductsManagement />} />
+          <Route path="categories" element={<AdminCategories />} />
+          <Route path="finance" element={<AdminFinance />} />
+          <Route path="out-of-stock" element={<AdminOutOfStock />} />
+          <Route path="profile" element={<AdminProfile />} />
+        </Route>
+
+        <Route path="*" element={<NotFound />} />
+      </Routes>
     </Router>
   );
 };

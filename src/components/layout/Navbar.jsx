@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ShoppingCart, User, Menu, X, Search, ChevronDown, Heart } from 'lucide-react';
+import { ShoppingCart, User, Menu, X, Search, ChevronDown, Heart, LogOut } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { useCurrency } from '../../context/CurrencyContext';
+import { useAuth } from '../../context/AuthContext';
 import { categoryGroups, products } from '../../data/products';
 
 const collectionRouteMap = {
@@ -22,9 +23,10 @@ const collectionLabelMap = {
   women: "Women's"
 };
 
-const Navbar = ({ isAuthenticated = false }) => {
+const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [expandedMobileGroup, setExpandedMobileGroup] = useState('Shop by Category');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
@@ -34,6 +36,7 @@ const Navbar = ({ isAuthenticated = false }) => {
   const { cartCount } = useCart();
   const { wishlistCount } = useWishlist();
   const { currency, toggle: toggleCurrency } = useCurrency();
+  const { user, logout, isAuthenticated } = useAuth();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -68,6 +71,13 @@ const Navbar = ({ isAuthenticated = false }) => {
     navigate(to);
     setSearchFocused(false);
     setIsOpen(false);
+  };
+
+  const handleLogout = () => {
+    logout();
+    setIsProfileOpen(false);
+    setIsOpen(false);
+    navigate('/');
   };
 
   const isActive = (path) => location.pathname === path;
@@ -139,6 +149,11 @@ const Navbar = ({ isAuthenticated = false }) => {
             <Link to="/about" className={`text-sm font-medium transition-colors ${isActive('/about') ? 'text-gray-950' : 'text-gray-500 hover:text-gray-950'}`}>
               About
             </Link>
+            {isAuthenticated && (
+              <Link to="/post-item" className={`text-sm font-medium transition-colors ${isActive('/post-item') ? 'text-gray-950' : 'text-gray-500 hover:text-gray-950'}`}>
+                Sell
+              </Link>
+            )}
 
             {/* Search */}
             <div className="relative w-full max-w-[220px]">
@@ -194,8 +209,54 @@ const Navbar = ({ isAuthenticated = false }) => {
                 <span className="absolute -top-1 -right-1 bg-gray-950 text-white text-[10px] rounded-full h-4 min-w-4 px-0.5 flex items-center justify-center font-bold">{cartCount}</span>
               )}
             </Link>
+            
+            {/* User Profile / Auth */}
             {isAuthenticated ? (
-              <button className="p-1 text-gray-500 hover:text-gray-950 transition-colors"><User className="w-5 h-5" /></button>
+              <div className="relative">
+                <button 
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  className="flex items-center gap-2 pl-3 py-1.5 border-l border-gray-200 text-gray-700 hover:text-gray-950 transition-colors"
+                >
+                  <div className="w-8 h-8 rounded-full bg-gray-900 flex items-center justify-center text-white text-xs font-bold uppercase">
+                    {user?.username?.charAt(0)}
+                  </div>
+                  <span className="text-xs font-semibold max-w-[80px] truncate">{user?.username}</span>
+                  <ChevronDown className={`w-3 h-3 transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {isProfileOpen && (
+                  <>
+                    <div className="fixed inset-0 z-10" onClick={() => setIsProfileOpen(false)} />
+                    <div className="absolute top-full right-0 mt-3 w-48 rounded-2xl border border-gray-100 bg-white shadow-2xl shadow-gray-200/60 p-2 z-20">
+                      <div className="px-3 py-2 border-b border-gray-50 mb-1">
+                        <p className="text-[10px] uppercase tracking-wider text-gray-400 font-bold">Account</p>
+                        <p className="text-xs font-semibold text-gray-950 truncate">{user?.email}</p>
+                      </div>
+                      <Link to="/profile" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-950 transition-colors">
+                        My Profile
+                      </Link>
+                      {user?.role === 'admin' && (
+                        <Link 
+                          to="/admin"
+                          onClick={() => setIsProfileOpen(false)}
+                          className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-blue-600 hover:bg-blue-50 transition-colors"
+                        >
+                          Admin Dashboard
+                        </Link>
+                      )}
+                      <Link to="/orders" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-950 transition-colors">
+                        Orders
+                      </Link>
+                      <button 
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-rose-600 hover:bg-rose-50 transition-colors"
+                      >
+                        <LogOut className="w-3.5 h-3.5" /> Log Out
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
             ) : (
               <Link to="/login" className="bg-gray-950 text-white px-5 py-2 rounded-full text-sm font-semibold hover:bg-gray-800 transition-colors">
                 Sign In
@@ -242,8 +303,43 @@ const Navbar = ({ isAuthenticated = false }) => {
               ))}
             </div>
           )}
+          
+          {/* User info in mobile menu */}
+          {isAuthenticated && (
+            <div className="bg-gray-50 rounded-2xl p-4 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center text-white font-bold text-lg">
+                  {user?.username?.charAt(0)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-gray-950 truncate">{user?.username}</p>
+                  <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+                </div>
+                <button onClick={handleLogout} className="p-2 text-rose-500 hover:bg-rose-50 rounded-xl transition-colors">
+                  <LogOut className="w-5 h-5" />
+                </button>
+              </div>
+              
+              {user?.role === 'admin' && (
+                <Link 
+                  to="/admin"
+                  onClick={() => setIsOpen(false)}
+                  className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-blue-200"
+                >
+                  Admin Dashboard
+                </Link>
+              )}
+            </div>
+          )}
+
           <div className="space-y-1">
-            {[['/', 'Home'], ['/products', 'Shop All'], ['/about', 'About'], ['/wishlist', 'Wishlist']].map(([path, label]) => (
+            {[
+              ['/', 'Home'],
+              ['/products', 'Shop All'],
+              ['/about', 'About'],
+              ['/wishlist', 'Wishlist'],
+              ...(isAuthenticated ? [['/post-item', 'Sell Your Item']] : [])
+            ].map(([path, label]) => (
               <Link key={path} to={path} onClick={() => setIsOpen(false)} className={`block px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${isActive(path) ? 'bg-gray-100 text-gray-950' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-950'}`}>
                 {label}
               </Link>
@@ -277,9 +373,13 @@ const Navbar = ({ isAuthenticated = false }) => {
               </div>
             ))}
           </div>
-          <Link to="/login" onClick={() => setIsOpen(false)} className="block w-full text-center bg-gray-950 text-white py-3 rounded-full text-sm font-semibold hover:bg-gray-800 transition-colors">
-            Sign In
-          </Link>
+          
+          {!isAuthenticated && (
+            <Link to="/login" onClick={() => setIsOpen(false)} className="block w-full text-center bg-gray-950 text-white py-3 rounded-full text-sm font-semibold hover:bg-gray-800 transition-colors">
+              Sign In
+            </Link>
+          )}
+
           <button
             type="button"
             onClick={toggleCurrency}
@@ -295,3 +395,4 @@ const Navbar = ({ isAuthenticated = false }) => {
 };
 
 export default Navbar;
+

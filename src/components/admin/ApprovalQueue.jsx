@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { api } from '../../lib/api';
 
 const ApprovalQueue = () => {
   const [purchases, setPurchases] = useState([]);
@@ -6,15 +7,8 @@ const ApprovalQueue = () => {
 
   const fetchPendingPurchases = async () => {
     try {
-      const response = await fetch('/api/purchases?status=pending', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      const data = await response.json();
-      if (data.success) {
-        setPurchases(data.data);
-      }
+      const data = await api.get('/purchases?status=pending');
+      setPurchases(data.data);
     } catch (err) {
       console.error('Failed to fetch pending purchases:', err);
     } finally {
@@ -28,13 +22,7 @@ const ApprovalQueue = () => {
 
   const handleAction = async (id, action) => {
     try {
-      const response = await fetch(`/api/purchases/${id}/${action}`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      const data = await response.json();
+      const data = await api.patch(`/purchases/${id}/${action}`);
       if (data.success) {
         fetchPendingPurchases();
       }
@@ -69,7 +57,7 @@ const ApprovalQueue = () => {
                 <td>
                   <div className="product-cell">
                     <img src={purchase.products[0]?.product?.image || 'https://via.placeholder.com/40'} alt="Product" className="product-img" />
-                    <span>{purchase.products[0]?.product?.name} {purchase.products.length > 1 && `+ ${purchase.products.length - 1} more`}</span>
+                    <span>{purchase.products[0]?.product?.title} {purchase.products.length > 1 && `+ ${purchase.products.length - 1} more`}</span>
                   </div>
                 </td>
                 <td>

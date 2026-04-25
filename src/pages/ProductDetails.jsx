@@ -4,13 +4,13 @@ import { Link, useParams } from 'react-router-dom';
 import VariantPicker from '../components/product/VariantPicker';
 import { getColor } from '../lib/colorUtils';
 import PurchaseModal from '../components/ui/PurchaseModal';
-import { getProductById, products } from '../data/products';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useCurrency } from '../context/CurrencyContext';
 import { useToast } from '../context/ToastContext';
 import { useRecentlyViewed } from '../context/RecentlyViewedContext';
 import ProductCard from '../components/ui/ProductCard';
+import { api } from '../lib/api';
 
 const ReviewStars = ({ rating, size = 'sm' }) => {
   const cls = size === 'lg' ? 'w-5 h-5' : 'w-3.5 h-3.5';
@@ -29,22 +29,35 @@ const ProductDetailsContent = ({ product }) => {
   const { format } = useCurrency();
   const { toast } = useToast();
   const { addViewed, viewed } = useRecentlyViewed();
-  const [selectedColor, setSelectedColor] = useState(product.colors[0] ?? '');
-  const [selectedSize, setSelectedSize] = useState(product.sizes[0] ?? '');
+  const [selectedColor, setSelectedColor] = useState(product.colors?.[0] ?? '');
+  const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] ?? '');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeImg, setActiveImg] = useState(product.images[0] ?? product.image);
+  const [activeImg, setActiveImg] = useState(product.images?.[0] ?? product.image);
   const [qty, setQty] = useState(1);
+  const [relatedProducts, setRelatedProducts] = useState([]);
 
   useEffect(() => {
     addViewed(product);
+    
+    // Fetch related products
+    const fetchRelated = async () => {
+      try {
+        const catName = typeof product.category === 'object' ? product.category.name : product.category;
+        const data = await api.get(`/products?cat=${encodeURIComponent(catName)}&status=approved`);
+        setRelatedProducts(data.data.filter(p => p._id !== product._id).slice(0, 4));
+      } catch (err) {
+        console.error('Failed to fetch related products:', err);
+      }
+    };
+    fetchRelated();
   }, [product, addViewed]);
 
-  const cartPayload = { ...product, selectedColor, selectedSize };
-  const wishlisted = isWishlisted(product.id);
+  const cartPayload = { ...product, id: product._id, selectedColor, selectedSize };
+  const wishlisted = isWishlisted(product._id);
 
   const handleAddToCart = () => {
     for (let i = 0; i < qty; i++) addToCart(cartPayload);
-    toast(`${qty} × ${product.name} added to cart`);
+    toast(`${qty} × ${product.title} added to cart`);
   };
 
   const handleToggleWishlist = () => {
@@ -52,9 +65,7 @@ const ProductDetailsContent = ({ product }) => {
     toast(wishlisted ? 'Removed from wishlist' : 'Added to wishlist', wishlisted ? 'info' : 'success');
   };
 
-  const relatedProducts = products
-    .filter((p) => p.category === product.category && p.id !== product.id)
-    .slice(0, 4);
+  const categoryName = typeof product.category === 'object' ? product.category.name : product.category;
 
   return (
     <div className="pt-[104px] pb-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -62,9 +73,9 @@ const ProductDetailsContent = ({ product }) => {
       <nav className="flex items-center gap-1.5 text-xs text-gray-400 py-6">
         <Link to="/products" className="hover:text-gray-700 transition-colors">Products</Link>
         <ChevronRight className="w-3 h-3" />
-        <Link to={`/products?cat=${product.category}`} className="hover:text-gray-700 transition-colors">{product.category}</Link>
+        <Link to={`/products?cat=${encodeURIComponent(categoryName)}`} className="hover:text-gray-700 transition-colors">{categoryName}</Link>
         <ChevronRight className="w-3 h-3" />
-        <span className="text-gray-700 font-medium truncate max-w-[200px]">{product.name}</span>
+        <span className="text-gray-700 font-medium truncate max-w-[200px]">{product.title}</span>
       </nav>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
@@ -74,16 +85,16 @@ const ProductDetailsContent = ({ product }) => {
             className="aspect-square rounded-2xl overflow-hidden bg-gray-50"
             style={{ backgroundColor: getColor(selectedColor) + '18' }}
           >
-            <img src={activeImg} className="w-full h-full object-cover" alt={product.name} />
+            <img src={activeImg} className="w-full h-full object-cover" alt={product.title} />
           </div>
           <div className="grid grid-cols-3 gap-3">
-            {product.images.map((img) => (
+            {product.images?.map((img) => (
               <button
                 key={img}
                 onClick={() => setActiveImg(img)}
                 className={`aspect-square rounded-xl overflow-hidden border-2 transition-all ${activeImg === img ? 'border-gray-950 scale-[0.97]' : 'border-transparent hover:border-gray-200'}`}
               >
-                <img src={img} className="w-full h-full object-cover" alt={product.name} />
+                <img src={img} className="w-full h-full object-cover" alt={product.title} />
               </button>
             ))}
           </div>
@@ -93,18 +104,25 @@ const ProductDetailsContent = ({ product }) => {
         <div className="flex flex-col">
           {/* Badges */}
           <div className="flex flex-wrap gap-2 mb-4">
-            {product.isNew && <span className="rounded-full bg-gray-950 text-white px-3 py-1 text-[11px] font-semibold tracking-wide">New</span>}
+            {product.createdBy?.role === 'admin' && <span className="rounded-full bg-blue-600 text-white px-3 py-1 text-[11px] font-semibold tracking-wide shadow-sm">Recommended</span>}
+            {(product.isNewCollection || product.isNew) && <span className="rounded-full bg-gray-950 text-white px-3 py-1 text-[11px] font-semibold tracking-wide">New</span>}
             {product.onSale && <span className="rounded-full bg-rose-500 text-white px-3 py-1 text-[11px] font-semibold tracking-wide">Sale</span>}
             {product.bestSeller && <span className="rounded-full bg-amber-50 text-amber-700 border border-amber-200 px-3 py-1 text-[11px] font-semibold">Best Seller</span>}
           </div>
 
-          <h1 className="text-4xl font-bold text-gray-950 tracking-tight mb-4 leading-tight">{product.name}</h1>
+          <div className="flex items-center gap-2 mb-2">
+             <span className="text-[10px] font-bold text-gray-400 tracking-widest uppercase">Posted by {product.createdBy?.username || 'System'}</span>
+             <span className="h-3 w-[1px] bg-gray-200"></span>
+             <span className="text-[10px] font-mono text-gray-300">ID: {product._id}</span>
+          </div>
+
+          <h1 className="text-4xl font-bold text-gray-950 tracking-tight mb-4 leading-tight">{product.title}</h1>
 
           {/* Rating */}
           <div className="flex items-center gap-3 mb-5">
             <ReviewStars rating={product.rating} />
-            <span className="font-semibold text-sm text-gray-800">{product.rating.toFixed(1)}</span>
-            <span className="text-gray-400 text-sm">({product.reviewCount} reviews)</span>
+            <span className="font-semibold text-sm text-gray-800">{product.rating?.toFixed(1) || '0.0'}</span>
+            <span className="text-gray-400 text-sm">({product.reviewCount || 0} reviews)</span>
           </div>
 
           {/* Price */}
@@ -164,18 +182,18 @@ const ProductDetailsContent = ({ product }) => {
       <section className="mt-24 grid grid-cols-1 lg:grid-cols-[240px_minmax(0,1fr)] gap-10">
         <div className="rounded-2xl bg-gray-50 p-8 h-fit text-center lg:text-left">
           <p className="text-[10px] uppercase tracking-[0.25em] text-gray-400 font-semibold mb-3">Overall Rating</p>
-          <div className="text-6xl font-bold text-gray-950 mb-2">{product.rating.toFixed(1)}</div>
+          <div className="text-6xl font-bold text-gray-950 mb-2">{product.rating?.toFixed(1) || '0.0'}</div>
           <div className="flex justify-center lg:justify-start mb-3">
             <ReviewStars rating={product.rating} size="lg" />
           </div>
-          <p className="text-gray-500 text-sm">Based on {product.reviewCount} verified reviews</p>
+          <p className="text-gray-500 text-sm">Based on {product.reviewCount || 0} verified reviews</p>
         </div>
 
         <div>
           <h2 className="text-2xl font-bold text-gray-950 mb-6">Customer Reviews</h2>
           <div className="space-y-4">
-            {product.reviews.map((review) => (
-              <article key={review.id} className="rounded-2xl border border-gray-100 bg-white p-6">
+            {product.reviews?.length > 0 ? product.reviews.map((review) => (
+              <article key={review._id} className="rounded-2xl border border-gray-100 bg-white p-6">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
                   <div>
                     <h3 className="font-semibold text-gray-900">{review.title}</h3>
@@ -185,7 +203,9 @@ const ProductDetailsContent = ({ product }) => {
                 </div>
                 <p className="text-gray-600 text-sm leading-relaxed">{review.body}</p>
               </article>
-            ))}
+            )) : (
+              <p className="text-gray-500 text-sm italic">No reviews yet for this product.</p>
+            )}
           </div>
         </div>
       </section>
@@ -198,19 +218,19 @@ const ProductDetailsContent = ({ product }) => {
           <h2 className="text-2xl font-bold text-gray-950 mb-6">You May Also Like</h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
             {relatedProducts.map((p) => (
-              <ProductCard key={p.id} product={p} onQuickBuy={(prod) => { addToCart({ ...prod, selectedColor: prod.colors[0], selectedSize: prod.sizes[0] }); toast(`${prod.name} added to cart`); }} />
+              <ProductCard key={p._id} product={p} onQuickBuy={(prod) => { addToCart({ ...prod, id: prod._id, selectedColor: prod.colors?.[0], selectedSize: prod.sizes?.[0] }); toast(`${prod.title} added to cart`); }} />
             ))}
           </div>
         </section>
       )}
 
       {/* Recently Viewed */}
-      {viewed.filter((p) => p.id !== product.id).length > 0 && (
+      {viewed.filter((p) => p._id !== product._id).length > 0 && (
         <section className="mt-16">
           <h2 className="text-2xl font-bold text-gray-950 mb-6">Recently Viewed</h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-            {viewed.filter((p) => p.id !== product.id).slice(0, 4).map((p) => (
-              <ProductCard key={p.id} product={p} onQuickBuy={(prod) => { addToCart({ ...prod, selectedColor: prod.colors[0], selectedSize: prod.sizes[0] }); toast(`${prod.name} added to cart`); }} />
+            {viewed.filter((p) => p._id !== product._id).slice(0, 4).map((p) => (
+              <ProductCard key={p._id} product={p} onQuickBuy={(prod) => { addToCart({ ...prod, id: prod._id, selectedColor: prod.colors?.[0], selectedSize: prod.sizes?.[0] }); toast(`${prod.title} added to cart`); }} />
             ))}
           </div>
         </section>
@@ -221,9 +241,43 @@ const ProductDetailsContent = ({ product }) => {
 
 const ProductDetails = () => {
   const { id } = useParams();
-  const product = useMemo(() => getProductById(id), [id]);
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  if (!product) {
+  useEffect(() => {
+    const fetchProduct = async () => {
+      setLoading(true);
+      try {
+        const data = await api.get(`/products/${id}`);
+        setProduct(data.data);
+      } catch (err) {
+        console.error('Failed to fetch product:', err);
+        setError('Product not found');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProduct();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="pt-[104px] pb-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 animate-pulse">
+        <div className="h-4 bg-gray-100 rounded w-1/4 my-6" />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+          <div className="aspect-square bg-gray-100 rounded-2xl" />
+          <div className="space-y-6">
+            <div className="h-10 bg-gray-100 rounded w-3/4" />
+            <div className="h-6 bg-gray-100 rounded w-1/4" />
+            <div className="h-24 bg-gray-100 rounded w-full" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !product) {
     return (
       <div className="pt-[104px] pb-24 max-w-4xl mx-auto px-4 text-center">
         <p className="text-gray-400 text-sm tracking-widest uppercase mb-4">404</p>
@@ -236,7 +290,8 @@ const ProductDetails = () => {
     );
   }
 
-  return <ProductDetailsContent key={product.id} product={product} />;
+  return <ProductDetailsContent key={product._id} product={product} />;
 };
 
 export default ProductDetails;
+

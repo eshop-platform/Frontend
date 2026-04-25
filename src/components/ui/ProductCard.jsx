@@ -10,8 +10,9 @@ const ProductCard = ({ product, onQuickBuy }) => {
   const { format } = useCurrency();
 
   const badges = [
-    product.isNew ? { label: 'New', style: 'bg-gray-950 text-white' } : null,
+    (product.isNewCollection || product.isNew) ? { label: 'New', style: 'bg-gray-950 text-white' } : null,
     product.onSale ? { label: 'Sale', style: 'bg-rose-500 text-white' } : null,
+    product.createdBy?.role === 'admin' ? { label: 'Recommended', style: 'bg-blue-600 text-white shadow-sm' } : null,
     product.bestSeller ? { label: 'Best Seller', style: 'bg-amber-50 text-amber-700 border border-amber-200' } : null
   ].filter(Boolean);
 
@@ -20,7 +21,7 @@ const ProductCard = ({ product, onQuickBuy }) => {
       <div className="relative aspect-square overflow-hidden bg-gray-50">
         <img
           src={product.image}
-          alt={product.name}
+          alt={product.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
         />
 
@@ -40,10 +41,20 @@ const ProductCard = ({ product, onQuickBuy }) => {
           type="button"
           onClick={() => toggleWishlist(product)}
           className={`absolute top-3 right-3 rounded-full p-2.5 shadow-md transition-all ${wishlisted ? 'bg-rose-500 text-white scale-110' : 'bg-white/90 text-gray-500 hover:text-rose-500 hover:scale-110'}`}
-          aria-label={`Toggle wishlist for ${product.name}`}
+          aria-label={`Toggle wishlist for ${product.title}`}
         >
           <Heart className={`w-3.5 h-3.5 ${wishlisted ? 'fill-current' : ''}`} />
         </button>
+
+        {/* ID & Likes Overlay (Bottom) */}
+        <div className="absolute top-3 right-14 flex flex-col items-end gap-1 pointer-events-none">
+          <div className="bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md text-[10px] font-mono text-gray-400 shadow-sm">
+            #{product._id?.slice(-6)}
+          </div>
+          <div className="bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md text-[10px] font-bold text-rose-500 shadow-sm flex items-center gap-1">
+             <Heart className="w-2.5 h-2.5 fill-current" /> {product.likes || 0}
+          </div>
+        </div>
 
         {/* Out of stock overlay */}
         {isOutOfStock && (
@@ -64,9 +75,9 @@ const ProductCard = ({ product, onQuickBuy }) => {
             <ShoppingCart className="w-3.5 h-3.5" /> Add to Cart
           </button>
           <Link
-            to={`/products/${product.id}`}
+            to={`/products/${product._id}`}
             className="bg-white text-gray-900 p-2.5 rounded-full shadow-lg hover:bg-gray-950 hover:text-white transition-colors"
-            aria-label={`View ${product.name}`}
+            aria-label={`View ${product.title}`}
           >
             <Eye className="w-3.5 h-3.5" />
           </Link>
@@ -74,15 +85,18 @@ const ProductCard = ({ product, onQuickBuy }) => {
       </div>
 
       <div className="p-4">
-        <p className="text-[10px] text-gray-400 uppercase tracking-[0.2em] font-medium mb-1">{product.category}</p>
-        <Link to={`/products/${product.id}`}>
-          <h3 className="font-semibold text-gray-900 text-sm mb-2 truncate hover:text-gray-600 transition-colors">{product.name}</h3>
+        <div className="flex items-center justify-between mb-1">
+          <p className="text-[10px] text-gray-400 uppercase tracking-[0.2em] font-medium">{product.category?.name || product.category}</p>
+          <span className="text-[9px] font-bold text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded">BY {product.createdBy?.username?.toUpperCase() || 'SYSTEM'}</span>
+        </div>
+        <Link to={`/products/${product._id}`}>
+          <h3 className="font-semibold text-gray-900 text-sm mb-2 truncate hover:text-gray-600 transition-colors">{product.title}</h3>
         </Link>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1">
             <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-            <span className="text-xs font-semibold text-gray-700">{product.rating.toFixed(1)}</span>
-            <span className="text-xs text-gray-400">({product.reviewCount})</span>
+            <span className="text-xs font-semibold text-gray-700">{product.rating?.toFixed(1) || '0.0'}</span>
+            <span className="text-xs text-gray-400">({product.reviewCount || 0})</span>
           </div>
           <p className="font-bold text-gray-950">{format(product.price)}</p>
         </div>

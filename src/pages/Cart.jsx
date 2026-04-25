@@ -5,6 +5,7 @@ import { Trash2, Plus, Minus, ArrowRight, ShoppingBag } from 'lucide-react';
 import PurchaseModal from '../components/ui/PurchaseModal';
 import { useCurrency } from '../context/CurrencyContext';
 import { useToast } from '../context/ToastContext';
+import { api } from '../lib/api';
 
 const Cart = () => {
   const { cart, removeFromCart, updateQuantity, total } = useCart();
@@ -19,16 +20,18 @@ const Cart = () => {
     toast(`${name} removed from cart`, 'info');
   };
 
-  const checkoutProduct = useMemo(() => {
+  const checkoutPayload = useMemo(() => {
     if (cart.length === 0) return null;
     return {
       id: 'cart-checkout',
       name: `PrimeCommerce Order (${cart.length} item${cart.length === 1 ? '' : 's'})`,
       price: total.toFixed(2),
       image: cart[0].image,
-      category: 'Order',
-      selectedColor: null,
-      selectedSize: null
+      products: cart.map(item => ({
+        id: item.id || item._id,
+        quantity: item.quantity,
+        price: item.price
+      }))
     };
   }, [cart, total]);
 
@@ -40,9 +43,7 @@ const Cart = () => {
     const verify = async () => {
       setPaymentStatus({ type: 'info', message: 'Verifying your payment…' });
       try {
-        const res = await fetch(`/api/chapa/verify/${encodeURIComponent(txRef)}`);
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message ?? 'Unable to verify payment.');
+        const data = await api.get(`/chapa/verify/${encodeURIComponent(txRef)}`);
         const status = data.chapa?.data?.status ?? data.chapa?.status ?? 'unknown';
         setPaymentStatus({
           type: status === 'success' ? 'success' : 'warning',
@@ -56,6 +57,7 @@ const Cart = () => {
     };
     verify();
   }, [searchParams]);
+
 
   const statusStyles = {
     error: 'bg-rose-50 text-rose-700 border border-rose-100',
@@ -157,9 +159,10 @@ const Cart = () => {
         </div>
       )}
 
-      <PurchaseModal isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} product={checkoutProduct} />
+      <PurchaseModal isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} product={checkoutPayload} />
     </div>
   );
 };
 
 export default Cart;
+

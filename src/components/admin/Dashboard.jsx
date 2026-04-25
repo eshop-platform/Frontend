@@ -4,6 +4,7 @@ import SalesChart from './SalesChart';
 import ActivityFeed from './ActivityFeed';
 import ApprovalQueue from './ApprovalQueue';
 import { ShoppingBag, Tag, Users, AlertCircle, TrendingUp, DollarSign } from 'lucide-react';
+import { api } from '../../lib/api';
 
 const Dashboard = () => {
   const [stats, setStats] = useState(null);
@@ -12,15 +13,8 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await fetch('/api/dashboard/stats', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        });
-        const data = await response.json();
-        if (data.success) {
-          setStats(data.data);
-        }
+        const data = await api.get('/dashboard/stats');
+        setStats(data.data);
       } catch (err) {
         console.error('Failed to fetch stats:', err);
       } finally {
