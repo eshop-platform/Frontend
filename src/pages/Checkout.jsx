@@ -55,25 +55,30 @@ const Checkout = () => {
 
     setLoading(true);
     try {
+      const fullName = address.fullName.trim();
+      const [firstName = '', ...rest] = fullName.split(/\s+/);
+      const lastName = rest.join(' ');
+      const txRef = `primecommerce-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
       const payload = {
         amount: checkoutTotal,
-        currency: 'ETB', // Defaulting to ETB for Chapa as per previous context
+        txRef,
         email: address.email,
-        first_name: address.fullName.split(' ')[0],
-        last_name: address.fullName.split(' ')[1] || '',
-        phone_number: address.phone,
-        tx_ref: `tx-${Date.now()}`,
-        callback_url: `${window.location.origin}/cart?payment=success`,
-        return_url: `${window.location.origin}/cart?payment=success`,
-        customization: {
-          title: "PrimeCommerce Order",
-          description: `Payment for ${checkoutItems.length} items`
-        }
+        firstName,
+        lastName,
+        phone: address.phone,
+        productName: `PrimeCommerce Order (${checkoutItems.length} item${checkoutItems.length === 1 ? '' : 's'})`,
+        productId: directItem ? (checkoutItems[0]?.id || checkoutItems[0]?._id) : null,
+        products: checkoutItems.map((item) => ({
+          id: item.id || item._id,
+          quantity: item.quantity,
+          price: item.price
+        }))
       };
 
       const response = await api.post('/chapa/initialize', payload);
-      if (response.data?.checkout_url) {
-        window.location.href = response.data.checkout_url;
+      if (response.checkoutUrl) {
+        window.location.href = response.checkoutUrl;
       } else {
         throw new Error('Failed to get payment URL');
       }

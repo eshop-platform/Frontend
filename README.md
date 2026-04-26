@@ -81,11 +81,7 @@ Frontend/
    ```
    Fill in your values in `.env`:
    ```
-   FRONTEND_ORIGIN=http://localhost:5173
-   SERVER_BASE_URL=http://localhost:4000
-   PORT=4000
-   CHAPA_SECRET_KEY=your_chapa_secret_key
-   CHAPA_WEBHOOK_SECRET=your_webhook_secret
+   VITE_API_URL=http://localhost:5000
    ```
 
 ### Running the App
@@ -124,11 +120,7 @@ npm run server
 
 | Variable | Description |
 |---|---|
-| `FRONTEND_ORIGIN` | Storefront URL (for CORS) |
-| `SERVER_BASE_URL` | Backend API base URL |
-| `PORT` | Backend server port |
-| `CHAPA_SECRET_KEY` | Chapa payment secret key |
-| `CHAPA_WEBHOOK_SECRET` | Chapa webhook verification secret |
+| `VITE_API_URL` | Backend origin URL used by frontend API calls (example: `https://backend-u7s6.onrender.com`) |
 
 ## License
 

@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
-import { useAuth } from '../context/AuthContext';
 import { Package, DollarSign, Tag, Image as ImageIcon, FileText, CheckCircle2, AlertCircle } from 'lucide-react';
 
 const PostItem = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
   
   const [formData, setFormData] = useState({
     title: '',
@@ -28,9 +26,24 @@ const PostItem = () => {
       setLoading(true);
       try {
         const data = await api.get('/categories');
-        if (data.data && data.data.length > 0) {
-          setCategories(data.data);
-          setFormData(prev => ({ ...prev, category: data.data[0]._id }));
+        const rawCategories = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.data)
+            ? data.data
+            : Array.isArray(data?.categories)
+              ? data.categories
+              : [];
+
+        const normalizedCategories = rawCategories
+          .map((cat) => ({
+            _id: cat?._id || cat?.id || '',
+            name: cat?.name || cat?.title || 'Unnamed category'
+          }))
+          .filter((cat) => cat._id);
+
+        if (normalizedCategories.length > 0) {
+          setCategories(normalizedCategories);
+          setFormData(prev => ({ ...prev, category: normalizedCategories[0]._id }));
         } else {
           console.warn('No categories found in database');
           setCategories([]);
@@ -72,7 +85,7 @@ const PostItem = () => {
       
       // Clear form
       setFormData({
-        name: '',
+        title: '',
         description: '',
         price: '',
         category: categories[0]?._id || '',
@@ -89,7 +102,7 @@ const PostItem = () => {
     } catch (err) {
       setStatus({ 
         type: 'error', 
-        message: err.response?.data?.message || 'Failed to post item. Please try again.' 
+        message: err.message || 'Failed to post item. Please try again.' 
       });
     } finally {
       setSubmitting(false);
@@ -161,7 +174,9 @@ const PostItem = () => {
                   onChange={handleChange}
                   className="w-full bg-gray-50 border-none rounded-2xl py-4 pl-12 pr-4 focus:ring-2 focus:ring-gray-950 transition-all text-sm font-medium appearance-none"
                 >
-                  {loading ? <option>Loading...</option> : categories.map(cat => (
+                  {loading && <option value="">Loading categories...</option>}
+                  {!loading && categories.length === 0 && <option value="">No categories available</option>}
+                  {!loading && categories.map((cat) => (
                     <option key={cat._id} value={cat._id}>{cat.name}</option>
                   ))}
                 </select>
